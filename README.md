@@ -20,7 +20,7 @@ VantaBoost does not ship speculative optimizations. Every optimization must have
 
 An experimental entity-occlusion prototype is implemented with geometric tests. The Gradle build, JUnit suite, and headless client mixin-application smoke test passed in GitHub Actions (run [#97](https://github.com/ItsDropper/VantaBoost/actions/runs/45231777025)). This is not a visual regression test or a performance benchmark. The prototype is not performance-accepted: no controlled baseline or FPS result exists. Block-entity culling and the configuration UI are not implemented.
 
-**Important:** the current prototype is not yet a competitor to Entity Culling. It only skips conservative stationary vanilla entities fully hidden by one vanilla opaque block face, using a synchronous raycast. Entity Culling has broader multi-voxel sampling, asynchronous processing, velocity-expanded bounds, block-entity support, and earlier render-state extraction avoidance. See [the source comparison and required roadmap](docs/RESEARCH.md#entity-and-block-entity-occlusion-culling).
+**Important:** the current prototype is not yet a competitor to Entity Culling. It only skips conservative stationary vanilla entities fully hidden by one vanilla opaque block face, using a synchronous raycast. Entity Culling has broader multi-voxel sampling, asynchronous processing, velocity-expanded bounds, block-entity support, and earlier render-state extraction avoidance. See [the source comparison and required roadmap](docs/RESEARCH.md#a-entity-and-block-entity-occlusion-culling).
 
 The prototype fails open for uncertain cases and is disabled with Iris, Canvas, VulkanMod, EntityCulling, or Entity Model Features installed. To disable it manually, launch with `-Dvantaboost.disableEntityOcclusion=true`.
 
