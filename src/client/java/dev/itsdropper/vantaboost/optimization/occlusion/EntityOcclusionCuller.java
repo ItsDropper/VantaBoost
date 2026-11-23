@@ -40,6 +40,9 @@ public final class EntityOcclusionCuller {
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_INTERPOLATION_PADDING = 1.5;
     private static final int MAX_CACHE_ENTRIES = 16384;
+    private static final int MAX_FACE_CELLS = 64;
+    private static final double[] PROJECTED_FACE_BOUNDS = new double[4];
+    private static final int[] FACE_CELL_RANGE = new int[4];
     private static final boolean ENABLED =
             !Boolean.getBoolean("vantaboost.disableEntityOcclusion");
 
@@ -392,18 +395,55 @@ public final class EntityOcclusionCuller {
             plane += 1.0;
         }
 
-        double minU = axis == 0 ? block.getY()
-                : block.getX();
-        double maxU = minU + 1.0;
-        double minV = axis == 0 ? block.getZ()
-                : axis == 1 ? block.getZ() : block.getY();
-        double maxV = minV + 1.0;
+        return isCoveredByOpaqueBlockPlane(
+                level, block, axis, normalStep, plane,
+                minX, minY, minZ, maxX, maxY, maxZ,
+                cameraX, cameraY, cameraZ);
+    }
 
-        return OcclusionSampling.isFullyOccludedByBlockFace(
-                minX, minY, minZ,
-                maxX, maxY, maxZ,
-                cameraX, cameraY, cameraZ,
-                axis, normalStep, plane, minU, maxU, minV, maxV);
+    private static boolean isCoveredByOpaqueBlockPlane(
+            ClientLevel level, BlockPos hitBlock,
+            int axis, int normalStep, double plane,
+            double minX, double minY, double minZ,
+            double maxX, double maxY, double maxZ,
+            double cameraX, double cameraY, double cameraZ
+    ) {
+        if (!OcclusionSampling.projectAabbOntoPlane(
+                minX, minY, minZ, maxX, maxY, maxZ,
+                cameraX, cameraY, cameraZ, axis, normalStep, plane,
+                PROJECTED_FACE_BOUNDS)
+                || !OcclusionSampling.getFaceCellRange(
+                PROJECTED_FACE_BOUNDS, FACE_CELL_RANGE, MAX_FACE_CELLS)) {
+            return false;
+        }
+
+        int fixedBlockCoordinate = axis == 0 ? hitBlock.getX()
+                : axis == 1 ? hitBlock.getY() : hitBlock.getZ();
+        BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
+
+        // The entire projected AABB is inside this rectangle of adjacent
+        // full-block faces. Checking every cell proves the union covers it;
+        // sparse rays alone would not prove the absence of holes.
+        for (long u = FACE_CELL_RANGE[0]; u <= FACE_CELL_RANGE[1]; u++) {
+            for (long v = FACE_CELL_RANGE[2]; v <= FACE_CELL_RANGE[3]; v++) {
+                if (axis == 0) {
+                    position.set(fixedBlockCoordinate, (int) u, (int) v);
+                } else if (axis == 1) {
+                    position.set((int) u, fixedBlockCoordinate, (int) v);
+                } else {
+                    position.set((int) u, (int) v, fixedBlockCoordinate);
+                }
+
+                var state = level.getBlockState(position);
+                if (!state.isSolidRender()
+                        || !state.getBlock().getClass().getName()
+                        .startsWith("net.minecraft.world.level.block.")) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private record CacheEntry(
