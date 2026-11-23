@@ -88,6 +88,28 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Diagnostics: opt-in profiling via `-Dvantaboost.profileEntityOcclusion=true` emits 300-frame summaries for candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time. Full-culler and full occlusion-query timing are collected only when explicitly enabled.
 - Limitations: this is a single-plane contiguous-face occlusion test, not a general multi-plane voxel occlusion solver. It deliberately misses many valid culling opportunities. No VantaBoost interactive visual regression test, controlled runtime baseline, or FPS measurement exists; performance acceptance is therefore pending. The headless CI client launch and mixin-application smoke test passed.
 
+### [VB-R09] Conservative block-entity occlusion culling
+
+- Status: Implemented — experimental pre-extraction prototype; not performance-accepted
+- Target Minecraft version: 1.21.11
+- Subsystem: Block-entity render-state extraction and submission
+- Relevant source paths / upstream references: Minecraft LevelRenderer.extractVisibleBlockEntities(Camera,float,LevelRenderState), BlockEntityRenderDispatcher.tryExtractRenderState(BlockEntity,float,CrumblingOverlay), and BlockEntityRenderer.shouldRender; Entity Culling's BlockEntityRenderDispatcherMixin
+- Profile artifact and commit: None
+- Measured baseline cost: Unknown; no block-entity render-state or submission profile has been captured
+- Root cause: In block-entity-dense scenes, vanilla can pass a block entity through its renderer distance check and still create a render state and submit geometry even when a full opaque wall hides the complete conservative render envelope.
+- Hypothesis: Rejecting proven-occluded block entities immediately after vanilla's renderer-specific shouldRender check, but before createRenderState and extractRenderState, can reduce extraction, render submission, and GPU work in dense builds.
+- Proposed mechanism: LevelRendererBlockEntityOcclusionMixin scopes checks to the main visible-block-entity extraction pass. BlockEntityRenderDispatcherOcclusionMixin wraps the renderer's existing shouldRender result and preserves it; only a vanilla-eligible object can be considered. A strict exact-class allowlist covers chest, bed, shulker box, decorated pot, bell, enchanting table, lectern, and copper-golem-statue renderer/entity pairs. The culler uses a conservative three-block AABB envelope, one center ray, and the same all-cells-on-one-coplanar-plane proof as the entity prototype. A 32-query-per-tick budget, rotating position buckets, weak-key cache, exact camera/bounds snapshots, and world-revision invalidation bound the work.
+- Expected metrics: Fewer block-entity render states, renderer submissions, and GPU work in occluded block-entity-heavy scenes; possible render-thread overhead from raycasts and cache checks.
+- Correctness constraints: Preserve vanilla shouldRender; exclude globally rendered and off-screen renderers; exact vanilla class matches only; fail open for unknown renderers/entities, shader-pack-active Iris, missing camera/world state, budget exhaustion, raycast errors, partial/holed occluders, or any uncertain projection. The three-block envelope is intentionally broad; it must be visually validated for every allowlisted renderer, especially double chests, beds, and animated models.
+- Compatibility risks: Renderer mods can alter block-entity geometry or extraction flow. Canvas and Entity Culling disable this prototype. Iris shader packs cause fail-open. Other renderer combinations still require runtime testing.
+- Implementation commit: ae5abee through 645d12a (main)
+- Benchmark scenarios and repetitions: Not run. Required: identical dense village/build scene with many visible and wall-occluded block entities, plus empty-world and ordinary gameplay controls; repeat with profiling disabled for final frame-time comparison.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: Pure-Java allowlist tests and CI build/client mixin smoke coverage are being added; no in-game visual correctness test or controlled performance measurement exists yet.
+- Rollback condition: Revert/disable if any allowlisted renderer is visibly clipped, if occlusion invalidation is stale, or if the culler overhead exceeds saved extraction/submission time in representative scenes.
+- Decision and rationale: Keep as an experimental implementation only. Do not claim FPS gains or mark accepted until the visual gate and controlled benchmark pass. Disable manually with -Dvantaboost.disableBlockEntityOcclusion=true.
+
 ### [VB-R04] Deferred sky rendering
 
 - Status: Proposed
