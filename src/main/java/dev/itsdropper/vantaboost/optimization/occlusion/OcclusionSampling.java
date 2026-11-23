@@ -1,12 +1,10 @@
 package dev.itsdropper.vantaboost.optimization.occlusion;
 
 /**
- * Geometric proof that one opaque, axis-aligned block face covers the complete
- * perspective projection of an entity's conservative render bounds.
- *
- * <p>Unlike sparse point sampling, this checks all eight AABB corners against
- * the same occluder face. Since the projected AABB is convex, containing every
- * projected corner contains its complete projected silhouette.</p>
+ * Geometric proofs for conservative entity bounds projected onto opaque block
+ * faces. The projected AABB is convex, so its projected corner bounds contain
+ * the complete silhouette. A bounded rectangle of adjacent full-block faces
+ * can therefore prove coverage when every cell in that rectangle is opaque.
  */
 public final class OcclusionSampling {
     private static final double MIN_EXTENT = 0.2;
