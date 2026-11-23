@@ -24,7 +24,7 @@ import java.util.WeakHashMap;
  */
 public final class EntityOcclusionCuller {
     private static final int MAX_QUERIES_PER_TICK = 24;
-    private static final int QUERY_TICK_STRIDE = 4;
+    private static final int QUERY_ID_BUCKETS = 1024;
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
     private static final double BOUNDS_PADDING = 0.15;
@@ -87,10 +87,14 @@ public final class EntityOcclusionCuller {
             return cached.occluded;
         }
 
-        // Spread first-time queries across ticks instead of repeatedly favoring
-        // the first entities in the renderer's iteration order.
-        if (Math.floorMod(entity.getId(), QUERY_TICK_STRIDE)
-                != Math.floorMod(gameTime, QUERY_TICK_STRIDE)
+        // Rotate a bounded entity-ID window each tick. This avoids spending the
+        // entire query budget on the same first entities every frame/tick.
+        int windowStart = (int) Math.floorMod(
+                gameTime * MAX_QUERIES_PER_TICK, QUERY_ID_BUCKETS);
+        int entityBucket = Math.floorMod(entity.getId(), QUERY_ID_BUCKETS);
+        int bucketOffset = Math.floorMod(
+                entityBucket - windowStart, QUERY_ID_BUCKETS);
+        if (bucketOffset >= MAX_QUERIES_PER_TICK
                 || queriesThisTick >= MAX_QUERIES_PER_TICK) {
             return false;
         }
