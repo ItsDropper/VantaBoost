@@ -49,6 +49,9 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
 
         boolean vanillaVisible = frustum.isVisible(bounds);
         if (!vanillaVisible
+                || frustum != originalFrustum
+                || !Double.isFinite(cameraX) || !Double.isFinite(cameraY)
+                || !Double.isFinite(cameraZ)
                 || !EntityOcclusionCuller.isMainEntityExtraction(frustum)
                 || entity == entityRenderDispatcher.crosshairPickEntity
                 || !this.getClass().getName().startsWith("net.minecraft.client.renderer.entity.")) {
