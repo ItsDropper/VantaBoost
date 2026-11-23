@@ -60,6 +60,14 @@ public final class EntityOcclusionCuller {
         }
 
         AABB bounds = renderBounds.inflate(BOUNDS_PADDING);
+        if (!Double.isFinite(bounds.minX) || !Double.isFinite(bounds.minY)
+                || !Double.isFinite(bounds.minZ) || !Double.isFinite(bounds.maxX)
+                || !Double.isFinite(bounds.maxY) || !Double.isFinite(bounds.maxZ)
+                || !Double.isFinite(cameraPosition.x) || !Double.isFinite(cameraPosition.y)
+                || !Double.isFinite(cameraPosition.z)) {
+            return false;
+        }
+
         double sizeX = bounds.maxX - bounds.minX;
         double sizeY = bounds.maxY - bounds.minY;
         double sizeZ = bounds.maxZ - bounds.minZ;
@@ -156,7 +164,7 @@ public final class EntityOcclusionCuller {
                 ClipContext.Fluid.NONE,
                 entity));
 
-        if (hit.getType() != HitResult.Type.BLOCK
+        if (hit.getType() != HitResult.Type.BLOCK || hit.isInside() || hit.isWorldBorderHit()
                 || !level.getBlockState(hit.getBlockPos()).isSolidRender()) {
             return false;
         }
