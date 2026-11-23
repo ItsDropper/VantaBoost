@@ -55,7 +55,15 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
             return;
         }
 
-        AABB bounds = getBoundingBoxForCulling(entity);
+        AABB bounds;
+        try {
+            bounds = getBoundingBoxForCulling(entity);
+        } catch (RuntimeException ignored) {
+            return;
+        }
+        if (bounds == null) {
+            return;
+        }
         if (shadowRadius > 0.0F) {
             // Include the vanilla ground-shadow footprint in the occlusion proof.
             bounds = bounds.inflate(shadowRadius, 0.0, shadowRadius);
