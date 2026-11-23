@@ -24,7 +24,8 @@ import java.util.WeakHashMap;
  *
  * <p>World access stays on the client thread. Vanilla entities with vanilla
  * renderers are considered only when previous-to-current interpolation can be
- * enclosed by a bounded expansion of the vanilla culling AABB. A cached result is reused only while
+ * enclosed by a bounded expansion of the vanilla culling AABB, and renderers
+ * using custom shadow radii or render offsets are excluded. A cached result is reused only while
  * the Frustum origin and conservative bounds are unchanged; block and chunk
  * mutations advance a world revision. Query work is bounded per client tick,
  * and every uncertain state fails open.</p>
@@ -46,6 +47,25 @@ public final class EntityOcclusionCuller {
                     || FabricLoader.getInstance().isModLoaded("vulkanmod")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
                     || FabricLoader.getInstance().isModLoaded("entity_model_features");
+    private static final ClassValue<Boolean> HAS_CUSTOM_RENDER_OFFSET = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            for (Class<?> type = rendererType;
+                 type != null && type != EntityRenderer.class;
+                 type = type.getSuperclass()) {
+                try {
+                    type.getDeclaredMethod("getRenderOffset", EntityRenderState.class);
+                    return true;
+                } catch (NoSuchMethodException ignored) {
+                    // Continue through the renderer's superclass chain.
+                } catch (SecurityException ignored) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
     private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_RADIUS = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
@@ -116,6 +136,9 @@ public final class EntityOcclusionCuller {
 
         if (!Double.isFinite(shadowRadius) || shadowRadius < 0.0
                 || HAS_CUSTOM_SHADOW_RADIUS.get(rendererType)
+                // Dispatcher applies this offset after entity extraction; vanilla's
+                // culling AABB does not include arbitrary renderer-specific offsets.
+                || HAS_CUSTOM_RENDER_OFFSET.get(rendererType)
                 || !Double.isFinite(renderBounds.minX) || !Double.isFinite(renderBounds.minY)
                 || !Double.isFinite(renderBounds.minZ) || !Double.isFinite(renderBounds.maxX)
                 || !Double.isFinite(renderBounds.maxY) || !Double.isFinite(renderBounds.maxZ)
