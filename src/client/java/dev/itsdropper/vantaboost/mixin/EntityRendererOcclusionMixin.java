@@ -24,6 +24,9 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
     protected EntityRenderDispatcher entityRenderDispatcher;
 
     @Shadow
+    protected float shadowRadius;
+
+    @Shadow
     protected abstract boolean affectedByCulling(T entity);
 
     @Shadow
@@ -53,6 +56,10 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
         }
 
         AABB bounds = getBoundingBoxForCulling(entity);
+        if (shadowRadius > 0.0F) {
+            // Include the vanilla ground-shadow footprint in the occlusion proof.
+            bounds = bounds.inflate(shadowRadius, 0.0, shadowRadius);
+        }
         if (EntityOcclusionCuller.shouldCull(
                 entity, bounds, entityRenderDispatcher.camera.getPosition())) {
             cir.setReturnValue(false);
