@@ -18,6 +18,9 @@ public final class EntityOcclusionDiagnostics {
 
     private static long frames;
     private static long candidateCalls;
+    private static long candidateOcclusions;
+    private static long cullerNanos;
+    private static long maximumCullerNanos;
     private static long cacheHits;
     private static long cacheOcclusionHits;
     private static long budgetSkips;
@@ -28,9 +31,14 @@ public final class EntityOcclusionDiagnostics {
     private EntityOcclusionDiagnostics() {
     }
 
-    public static void recordCandidate() {
+    public static void recordCandidate(long elapsedNanos, boolean occluded) {
         if (ENABLED) {
             candidateCalls++;
+            cullerNanos += Math.max(0L, elapsedNanos);
+            maximumCullerNanos = Math.max(maximumCullerNanos, elapsedNanos);
+            if (occluded) {
+                candidateOcclusions++;
+            }
         }
     }
 
@@ -69,17 +77,23 @@ public final class EntityOcclusionDiagnostics {
             return;
         }
 
+        long averageCullerMicros = candidateCalls == 0
+                ? 0L : cullerNanos / candidateCalls / 1_000L;
         long averageQueryMicros = rayQueries == 0
                 ? 0L : rayQueryNanos / rayQueries / 1_000L;
         VantaBoost.LOGGER.info(
-                "Entity occlusion profile over {} frames: candidates={}, cacheHits={}, "
-                        + "cachedOcclusions={}, budgetSkips={}, rayQueries={}, "
-                        + "rayOcclusions={}, avgRayQuery={}us",
-                frames, candidateCalls, cacheHits, cacheOcclusionHits, budgetSkips,
+                "Entity occlusion profile over {} frames: candidates={}, cullerOcclusions={}, "
+                        + "avgCuller={}us, maxCuller={}us, cacheHits={}, cachedOcclusions={}, "
+                        + "budgetSkips={}, rayQueries={}, rayOcclusions={}, avgRayQuery={}us",
+                frames, candidateCalls, candidateOcclusions, averageCullerMicros,
+                maximumCullerNanos / 1_000L, cacheHits, cacheOcclusionHits, budgetSkips,
                 rayQueries, rayOcclusions, averageQueryMicros);
 
         frames = 0L;
         candidateCalls = 0L;
+        candidateOcclusions = 0L;
+        cullerNanos = 0L;
+        maximumCullerNanos = 0L;
         cacheHits = 0L;
         cacheOcclusionHits = 0L;
         budgetSkips = 0L;
