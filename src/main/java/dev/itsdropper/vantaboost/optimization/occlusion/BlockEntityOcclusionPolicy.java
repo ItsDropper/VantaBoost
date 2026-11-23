@@ -38,14 +38,13 @@ public final class BlockEntityOcclusionPolicy {
     }
 
     public static boolean isSupported(
-            Class<?> rendererType,
-            Class<?> blockEntityType,
+            String rendererClassName,
+            String blockEntityClassName,
             boolean rendersOffScreen,
             boolean globallyRendered
     ) {
-        return rendererType != null && blockEntityType != null
-                && !rendersOffScreen && !globallyRendered
-                && SUPPORTED_RENDERERS.contains(rendererType.getName())
-                && SUPPORTED_BLOCK_ENTITIES.contains(blockEntityType.getName());
+        return !rendersOffScreen && !globallyRendered
+                && SUPPORTED_RENDERERS.contains(rendererClassName)
+                && SUPPORTED_BLOCK_ENTITIES.contains(blockEntityClassName);
     }
 }
