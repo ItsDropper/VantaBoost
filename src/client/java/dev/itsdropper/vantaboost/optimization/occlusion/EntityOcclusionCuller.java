@@ -59,6 +59,7 @@ public final class EntityOcclusionCuller {
                     || FabricLoader.getInstance().isModLoaded("entity_model_features");
     private record RendererEligibility(
             boolean customNameTagPolicy,
+            boolean customNameTagSubmission,
             boolean customCullingBounds,
             boolean customSubmit,
             boolean customLivingScale,
@@ -68,7 +69,8 @@ public final class EntityOcclusionCuller {
             boolean customShadowRadius
     ) {
         private boolean isSafe() {
-            return !customNameTagPolicy && !customCullingBounds && !customSubmit
+            return !customNameTagPolicy && !customNameTagSubmission
+                    && !customCullingBounds && !customSubmit
                     && !customLivingScale && !customLivingRotations
                     && !customRenderOffset && !customShadowStrength && !customShadowRadius;
         }
@@ -90,6 +92,8 @@ public final class EntityOcclusionCuller {
             return new RendererEligibility(
                     RendererOverridePolicy.declaresMethodWithFirstParameter(
                             rendererType, nameTagBase, "shouldShowName", Entity.class),
+                    RendererOverridePolicy.declaresMethodWithFirstParameter(
+                            rendererType, livingBase, "submitNameTag", EntityRenderState.class),
                     RendererOverridePolicy.declaresSingleArgumentMethod(
                             rendererType, livingBase, "getBoundingBoxForCulling", Entity.class),
                     RendererOverridePolicy.declaresMethodWithFirstParameter(
