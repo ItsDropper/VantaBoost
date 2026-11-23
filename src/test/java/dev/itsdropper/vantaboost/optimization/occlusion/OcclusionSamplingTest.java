@@ -284,9 +284,9 @@ class OcclusionSamplingTest {
     void shadowBoundsIncludeBlockFlooringAndStrengthDependentDepth() {
         assertEquals(1.5, OcclusionShadowBounds.horizontalPadding(0.5), 0.0);
         assertEquals(0.0, OcclusionShadowBounds.horizontalPadding(0.0), 0.0);
-        assertEquals(1.5, OcclusionShadowBounds.verticalDropPadding(0.5, 1.0));
-        assertEquals(2.0, OcclusionShadowBounds.verticalDropPadding(2.0, 1.0));
-        assertEquals(3.0, OcclusionShadowBounds.verticalDropPadding(2.0, 2.0));
+        assertEquals(1.5, OcclusionShadowBounds.verticalDropPadding(0.5, 1.0), 0.0);
+        assertEquals(2.0, OcclusionShadowBounds.verticalDropPadding(2.0, 1.0), 0.0);
+        assertEquals(3.0, OcclusionShadowBounds.verticalDropPadding(2.0, 2.0), 0.0);
         assertEquals(1.0, OcclusionShadowBounds.verticalRisePadding(0.5), 0.0);
         assertEquals(0.0, OcclusionShadowBounds.verticalRisePadding(0.0), 0.0);
     }
