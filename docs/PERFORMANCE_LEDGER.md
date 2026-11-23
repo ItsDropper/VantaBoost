@@ -70,7 +70,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). No VantaBoost
 
 ### [VB-R03] Entity and block-entity occlusion culling
 
-- Status: Proposed
+- Status: Investigating — conservative decision gate and CI tests added; no renderer integration yet
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity/block-entity rendering
 - Relevant source: Entity Culling `CullTask` and `OcclusionCullingInstance`
@@ -80,6 +80,9 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). No VantaBoost
 - Correctness constraints: Fail open on uncertainty, conservative bounds, velocity expansion, camera freshness, render bounds and whitelist support.
 - Compatibility risks: Worker-thread snapshots, animated/modded entities, shader shadow passes and CPU contention.
 - Decision: Prototype only after measuring object rendering cost and designing stale-result/false-cull tests.
+- Current implementation: `ConservativeOcclusionPolicy` is an allocation-free, fail-open decision gate. It permits culling only for confirmed OCCLUDED results no older than one frame, with unchanged camera/object snapshots, conservative bounds, camera outside bounds, no forced-visible/glowing/targeted state, a standard renderer, and the main pass.
+- CI coverage: JUnit tests cover UNKNOWN/VISIBLE fail-open, stale/future results, each missing safety precondition, camera/bounds safety, special visibility states, unsupported renderers, and non-main passes.
+- Limitation: This policy is not wired into Minecraft rendering. It does not itself determine occlusion, and it does not prove a performance gain. Runtime integration remains blocked on exact call-site implementation and a real baseline profile.
 
 ### [VB-R04] Deferred sky rendering
 
