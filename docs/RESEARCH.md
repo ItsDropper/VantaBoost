@@ -270,7 +270,7 @@ Use a GPU profiler/RenderDoc or vendor tooling for GPU-bound cases and JFR/async
 
 - An experimental entity-only occlusion runtime and two client mixins now exist; block-entity occlusion remains unimplemented.
 - `build.gradle` and `fabric.mod.json` do not depend on Fabric API.
-- `docs/ARCHITECTURE.md` still lists Fabric API 0.141.6+1.21.11 in its toolchain section. That is stale and should be removed until the dependency is intentionally reintroduced.
+- `docs/ARCHITECTURE.md` and `fabric.mod.json` no longer declare a Fabric API dependency.
 - The source skill and benchmarking protocol already require profiling, exact descriptors, controlled comparisons and no fabricated FPS claims. This report adds concrete upstream source research.
 
 ## Decision gate before implementation
