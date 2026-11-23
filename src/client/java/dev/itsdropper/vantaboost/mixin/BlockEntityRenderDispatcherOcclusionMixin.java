@@ -24,7 +24,7 @@ public abstract class BlockEntityRenderDispatcherOcclusionMixin {
             )
     )
     private boolean vantaboost$applyBlockEntityOcclusion(
-            BlockEntityRenderer<?, ?> renderer,
+            BlockEntityRenderer renderer,
             BlockEntity blockEntity,
             Vec3 cameraPosition,
             Operation<Boolean> original
