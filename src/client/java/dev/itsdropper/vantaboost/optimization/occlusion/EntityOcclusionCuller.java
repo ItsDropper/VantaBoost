@@ -11,11 +11,12 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * Render-thread-only entity occlusion cache.
+ * Client-thread-only entity occlusion cache used during entity extraction.
  *
  * <p>World access stays on the client thread. Only stationary entities
  * with vanilla renderers are considered. Every cache entry is invalidated by
@@ -33,7 +34,7 @@ public final class EntityOcclusionCuller {
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
 
-    private static ClientLevel activeLevel;
+    private static WeakReference<ClientLevel> activeLevel = new WeakReference<>(null);
     private static long worldRevision;
     private static long budgetTick = Long.MIN_VALUE;
     private static int queriesThisTick;
@@ -146,8 +147,8 @@ public final class EntityOcclusionCuller {
     }
 
     private static void prepareLevel(ClientLevel level) {
-        if (activeLevel != level) {
-            activeLevel = level;
+        if (activeLevel.get() != level) {
+            activeLevel = new WeakReference<>(level);
             worldRevision++;
             CACHE.clear();
             budgetTick = Long.MIN_VALUE;
