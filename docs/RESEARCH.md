@@ -63,7 +63,7 @@ Value: potentially high in mob farms, crowded multiplayer areas, villages, and s
 
 Risks: worker-thread data consistency, stale visibility during camera/object motion, false culls, large/custom render bounds, glowing entities, shader shadow passes, and CPU overhead. The upstream project explicitly documents cases requiring whitelisting and notes that CPU-starved systems may not have spare cores for the visibility work.
 
-**Status:** Experimental entity-only prototype implemented. The implementation is independent and uses a narrower single-block-face projection proof; it does not copy upstream code. It is not performance-accepted. Block-entity culling remains unimplemented.
+**Status:** Experimental entity-only prototype implemented. It uses the exact 1.21.11 entity-renderer frustum call site and a narrower single-block-face projection proof; it does not copy upstream code. It is not performance-accepted. Block-entity culling remains unimplemented.
 
 ### B. Redundant framebuffer unbind avoidance
 
