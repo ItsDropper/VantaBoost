@@ -1,6 +1,7 @@
 package dev.itsdropper.vantaboost.mixin;
 
 import dev.itsdropper.vantaboost.optimization.occlusion.EntityOcclusionCuller;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.Entity;
@@ -9,13 +10,12 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * Applies occlusion only after vanilla has accepted the entity's normal
- * distance/frustum checks. Custom renderers and renderers opting out of culling
- * are left untouched.
+ * Reuses the exact conservative AABB vanilla already computed for frustum
+ * culling. The redirect runs only after vanilla decided the renderer is
+ * affected by culling, and preserves the original frustum result.
  */
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererOcclusionMixin<T extends Entity> {
@@ -26,47 +26,34 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
     @Shadow
     protected float shadowRadius;
 
-    @Shadow
-    protected abstract boolean affectedByCulling(T entity);
-
-    @Shadow
-    protected abstract AABB getBoundingBoxForCulling(T entity);
-
-    @Inject(
+    @Redirect(
             method = "shouldRender(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z",
-            at = @At("RETURN"),
-            cancellable = true
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/culling/Frustum;isVisible(Lnet/minecraft/world/phys/AABB;)Z"
+            )
     )
-    private void vantaboost$applyEntityOcclusion(
+    private boolean vantaboost$applyEntityOcclusion(
+            Frustum frustum,
+            AABB bounds,
             T entity,
-            net.minecraft.client.renderer.culling.Frustum frustum,
+            Frustum originalFrustum,
             double cameraX,
             double cameraY,
-            double cameraZ,
-            CallbackInfoReturnable<Boolean> cir
+            double cameraZ
     ) {
-        if (!cir.getReturnValueZ()
-                || !affectedByCulling(entity)
-                || !this.getClass().getName().startsWith("net.minecraft.client.renderer.entity.")) {
-            return;
-        }
-
-        if (entity == entityRenderDispatcher.crosshairPickEntity) {
-            return;
-        }
-
-        AABB bounds;
-        try {
-            bounds = getBoundingBoxForCulling(entity);
-        } catch (RuntimeException ignored) {
-            return;
-        }
         if (bounds == null) {
-            return;
+            return true;
         }
-        if (EntityOcclusionCuller.shouldCull(
-                entity, bounds, entityRenderDispatcher.camera.getPosition(), shadowRadius)) {
-            cir.setReturnValue(false);
+
+        boolean vanillaVisible = frustum.isVisible(bounds);
+        if (!vanillaVisible
+                || entity == entityRenderDispatcher.crosshairPickEntity
+                || !this.getClass().getName().startsWith("net.minecraft.client.renderer.entity.")) {
+            return vanillaVisible;
         }
+
+        return !EntityOcclusionCuller.shouldCull(
+                entity, bounds, entityRenderDispatcher.camera.getPosition(), shadowRadius);
     }
 }
