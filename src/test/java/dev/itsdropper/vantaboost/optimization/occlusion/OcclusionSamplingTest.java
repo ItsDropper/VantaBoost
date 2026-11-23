@@ -14,6 +14,29 @@ class OcclusionSamplingTest {
     private static class TestEntity {
     }
 
+    private static class TestLivingRendererBase {
+        protected void scale(TestRenderState state, Object pose) {
+        }
+
+        protected void setupRotations(TestRenderState state, Object pose) {
+        }
+    }
+
+    private static class InheritedLivingRenderer extends TestLivingRendererBase {
+    }
+
+    private static class CustomScaleRenderer extends TestLivingRendererBase {
+        @Override
+        protected void scale(TestRenderState state, Object pose) {
+        }
+    }
+
+    private static class CustomRotationRenderer extends TestLivingRendererBase {
+        @Override
+        protected void setupRotations(TestRenderState state, Object pose) {
+        }
+    }
+
     private static class TestSubmitRenderer {
         protected void submit(TestRenderState state, Object pose, Object collector, Object camera) {
         }
@@ -437,6 +460,19 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void livingRendererScaleAndRotationOverridesAreDetected() {
+        assertFalse(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                InheritedLivingRenderer.class, TestLivingRendererBase.class,
+                "scale", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomScaleRenderer.class, TestLivingRendererBase.class,
+                "scale", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomRotationRenderer.class, TestLivingRendererBase.class,
+                "setupRotations", TestRenderState.class));
     }
 
     @Test
