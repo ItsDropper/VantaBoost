@@ -296,9 +296,10 @@ public final class BlockEntityOcclusionCuller {
                 double minX, double minY, double minZ,
                 double maxX, double maxY, double maxZ
         ) {
-            return OcclusionCachePolicy.isReusable(occluded, worldRevision, revision)
-                    && this.cameraX == cameraX && this.cameraY == cameraY
-                    && this.cameraZ == cameraZ
+            boolean cameraSnapshotMatches = this.cameraX == cameraX
+                    && this.cameraY == cameraY && this.cameraZ == cameraZ;
+            return OcclusionCachePolicy.isReusable(
+                    occluded, worldRevision, revision, cameraSnapshotMatches)
                     && this.minX == minX && this.minY == minY && this.minZ == minZ
                     && this.maxX == maxX && this.maxY == maxY && this.maxZ == maxZ;
         }
