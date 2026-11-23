@@ -62,6 +62,8 @@ public final class EntityOcclusionCuller {
             boolean customNameTagSubmission,
             boolean customCullingBounds,
             boolean customCullingPolicy,
+            boolean customRenderStateExtraction,
+            boolean customRenderStateFinalization,
             boolean customSubmit,
             boolean customLivingScale,
             boolean customLivingRotations,
@@ -71,7 +73,9 @@ public final class EntityOcclusionCuller {
     ) {
         private boolean isSafe() {
             return !customNameTagPolicy && !customNameTagSubmission
-                    && !customCullingBounds && !customCullingPolicy && !customSubmit
+                    && !customCullingBounds && !customCullingPolicy
+                    && !customRenderStateExtraction && !customRenderStateFinalization
+                    && !customSubmit
                     && !customLivingScale && !customLivingRotations
                     && !customRenderOffset && !customShadowStrength && !customShadowRadius;
         }
@@ -99,6 +103,10 @@ public final class EntityOcclusionCuller {
                             rendererType, livingBase, "getBoundingBoxForCulling", Entity.class),
                     RendererOverridePolicy.declaresSingleArgumentMethod(
                             rendererType, EntityRenderer.class, "affectedByCulling", Entity.class),
+                    RendererOverridePolicy.declaresMethodWithFirstParameter(
+                            rendererType, livingBase, "extractRenderState", Entity.class),
+                    RendererOverridePolicy.declaresMethodWithFirstParameter(
+                            rendererType, livingBase, "finalizeRenderState", Entity.class),
                     RendererOverridePolicy.declaresMethodWithFirstParameter(
                             rendererType, livingBase, "submit", EntityRenderState.class),
                     livingRenderer && RendererOverridePolicy.declaresMethodWithFirstParameter(
