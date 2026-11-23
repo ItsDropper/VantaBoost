@@ -20,6 +20,20 @@ class OcclusionSamplingTest {
         }
     }
 
+    private static class TestNameTagSubmissionRenderer {
+        protected void submitNameTag(TestRenderState state, Object pose, Object collector, Object camera) {
+        }
+    }
+
+    private static class InheritedNameTagSubmissionRenderer extends TestNameTagSubmissionRenderer {
+    }
+
+    private static class CustomNameTagSubmissionRenderer extends TestNameTagSubmissionRenderer {
+        @Override
+        protected void submitNameTag(TestRenderState state, Object pose, Object collector, Object camera) {
+        }
+    }
+
     private static class InheritedNameTagRenderer extends TestNameTagRenderer {
     }
 
@@ -482,6 +496,16 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void rendererSpecificNameTagSubmissionOverridesAreDetected() {
+        assertFalse(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                InheritedNameTagSubmissionRenderer.class, TestNameTagSubmissionRenderer.class,
+                "submitNameTag", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomNameTagSubmissionRenderer.class, TestNameTagSubmissionRenderer.class,
+                "submitNameTag", TestRenderState.class));
     }
 
     @Test
