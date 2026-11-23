@@ -264,7 +264,9 @@ public final class EntityOcclusionCuller {
         if (cached != null && cached.matches(
                 worldRevision, cameraX, cameraY, cameraZ,
                 minX, minY, minZ, maxX, maxY, maxZ)) {
-            EntityOcclusionDiagnostics.recordCacheHit(cached.occluded);
+            if (EntityOcclusionDiagnostics.ENABLED) {
+                EntityOcclusionDiagnostics.recordCacheHit(cached.occluded);
+            }
             return cached.occluded;
         }
 
@@ -277,7 +279,9 @@ public final class EntityOcclusionCuller {
                 entityBucket - windowStart, QUERY_ID_BUCKETS);
         if (bucketOffset >= MAX_QUERIES_PER_TICK
                 || queriesThisTick >= MAX_QUERIES_PER_TICK) {
-            EntityOcclusionDiagnostics.recordBudgetSkip();
+            if (EntityOcclusionDiagnostics.ENABLED) {
+                EntityOcclusionDiagnostics.recordBudgetSkip();
+            }
             return false;
         }
 
