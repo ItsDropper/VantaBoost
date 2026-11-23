@@ -2,7 +2,7 @@
 
 **Research date:** 2026-11-23  
 **Target:** Minecraft 1.21.11, Fabric Loader 0.18.1, Java 21, official Mojang mappings  
-**Scope:** source-level investigation only. No optimization code has been implemented and no VantaBoost runtime benchmark has been run.
+**Scope:** source-level investigation plus an experimental entity-occlusion prototype. No VantaBoost runtime benchmark has been run.
 
 ## Executive conclusion
 
@@ -63,7 +63,7 @@ Value: potentially high in mob farms, crowded multiplayer areas, villages, and s
 
 Risks: worker-thread data consistency, stale visibility during camera/object motion, false culls, large/custom render bounds, glowing entities, shader shadow passes, and CPU overhead. The upstream project explicitly documents cases requiring whitelisting and notes that CPU-starved systems may not have spare cores for the visibility work.
 
-**Status:** Proposed. Worth a controlled prototype only after measuring entity/block-entity render cost. Do not copy upstream code; its repository uses a protective license. Reimplement independently and respect its license.
+**Status:** Experimental entity-only prototype implemented. The implementation is independent and uses a narrower single-block-face projection proof; it does not copy upstream code. It is not performance-accepted. Block-entity culling remains unimplemented.
 
 ### B. Redundant framebuffer unbind avoidance
 
@@ -268,7 +268,7 @@ Use a GPU profiler/RenderDoc or vendor tooling for GPU-bound cases and JFR/async
 
 ## Current repository observations
 
-- The project is still architecture initialization only; no optimization runtime or mixins exist.
+- An experimental entity-only occlusion runtime and two client mixins now exist; block-entity occlusion remains unimplemented.
 - `build.gradle` and `fabric.mod.json` do not depend on Fabric API.
 - `docs/ARCHITECTURE.md` still lists Fabric API 0.141.6+1.21.11 in its toolchain section. That is stale and should be removed until the dependency is intentionally reintroduced.
 - The source skill and benchmarking protocol already require profiling, exact descriptors, controlled comparisons and no fabricated FPS claims. This report adds concrete upstream source research.
@@ -282,4 +282,4 @@ No candidate is approved until:
 4. A candidate can be disabled cleanly when its prerequisite renderer/mod is absent.
 5. Benchmark data shows improvement outside measurement noise without unacceptable regressions.
 
-**Current decision:** research complete enough to select profiling scenarios and prioritize experiments; implementation is not authorized by this report. First runtime action should be baseline profiling, not adding mixins.
+**Current decision:** the entity-only mixin is an experimental implementation authorized as a correctness prototype. It is intentionally conservative and may cull fewer entities than full voxel culling. It must not be called production-accepted until the 1.21.11 build, mixin application, launch behavior, visual correctness, compatibility, and controlled performance benchmarks are verified.
