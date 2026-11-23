@@ -12,6 +12,11 @@ public final class OcclusionShadowBounds {
     private OcclusionShadowBounds() {
     }
 
+    /**
+     * Mirrors the vanilla LivingEntityRenderer and MobRenderer shadow-radius
+     * scaling. Non-mob living renderers use entity scale; mob renderers also
+     * multiply by age scale.
+     */
     public static double scaledRadius(
             double baseRadius, double entityScale, double ageScale, boolean mobRenderer
     ) {
