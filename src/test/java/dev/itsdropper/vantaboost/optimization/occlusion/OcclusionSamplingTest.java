@@ -14,6 +14,20 @@ class OcclusionSamplingTest {
     private static class TestEntity {
     }
 
+    private static class TestSubmitRenderer {
+        protected void submit(TestRenderState state, Object pose, Object collector, Object camera) {
+        }
+    }
+
+    private static class InheritedSubmitRenderer extends TestSubmitRenderer {
+    }
+
+    private static class CustomSubmitRenderer extends TestSubmitRenderer {
+        @Override
+        protected void submit(TestRenderState state, Object pose, Object collector, Object camera) {
+        }
+    }
+
     private static class VanillaBoundsRenderer {
         protected Object getBoundingBoxForCulling(TestEntity entity) {
             return entity;
@@ -423,6 +437,16 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void rendererSpecificSubmitOverridesFailClosed() {
+        assertFalse(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                InheritedSubmitRenderer.class, TestSubmitRenderer.class,
+                "submit", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomSubmitRenderer.class, TestSubmitRenderer.class,
+                "submit", TestRenderState.class));
     }
 
     @Test
