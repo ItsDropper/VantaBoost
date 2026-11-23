@@ -37,6 +37,15 @@ class OcclusionSamplingTest {
         }
     }
 
+    private static class IntermediateRenderStateExtractionRenderer extends TestRenderStateExtractionRenderer {
+        @Override
+        protected void extractRenderState(TestEntity entity, TestRenderState state, float partialTicks) {
+        }
+    }
+
+    private static class InheritedIntermediateRenderStateExtractionRenderer extends IntermediateRenderStateExtractionRenderer {
+    }
+
     private static class CustomRenderStateFinalizationRenderer extends TestRenderStateExtractionRenderer {
         @Override
         protected void finalizeRenderState(TestEntity entity, TestRenderState state) {
@@ -544,6 +553,9 @@ class OcclusionSamplingTest {
                 "extractRenderState", TestEntity.class));
         assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
                 CustomRenderStateExtractionRenderer.class, TestRenderStateExtractionRenderer.class,
+                "extractRenderState", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                InheritedIntermediateRenderStateExtractionRenderer.class, TestRenderStateExtractionRenderer.class,
                 "extractRenderState", TestEntity.class));
         assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
                 CustomRenderStateFinalizationRenderer.class, TestRenderStateExtractionRenderer.class,
