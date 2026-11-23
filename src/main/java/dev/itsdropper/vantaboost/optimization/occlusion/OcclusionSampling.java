@@ -234,7 +234,8 @@ public final class OcclusionSampling {
 
         long width = (long) maxUCell - minUCell + 1L;
         long height = (long) maxVCell - minVCell + 1L;
-        if (width * height > maximumCells) {
+        if (width > maximumCells || height > maximumCells
+                || width > maximumCells / height) {
             return false;
         }
 
