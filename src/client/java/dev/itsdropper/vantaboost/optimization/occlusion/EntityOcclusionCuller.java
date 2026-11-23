@@ -293,7 +293,7 @@ public final class EntityOcclusionCuller {
             occluded = false;
         } finally {
             if (EntityOcclusionDiagnostics.ENABLED) {
-                EntityOcclusionDiagnostics.recordRayQuery(
+                EntityOcclusionDiagnostics.recordOcclusionQuery(
                         System.nanoTime() - queryStarted, occluded);
             }
         }
