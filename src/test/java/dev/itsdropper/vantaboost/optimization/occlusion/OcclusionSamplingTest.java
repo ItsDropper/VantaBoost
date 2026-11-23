@@ -191,6 +191,17 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void shadowBoundsIncludeBlockFlooringAndStrengthDependentDepth() {
+        assertTrue(OcclusionShadowBounds.horizontalPadding(0.5) == 1.5);
+        assertTrue(OcclusionShadowBounds.horizontalPadding(0.0) == 0.0);
+        assertTrue(OcclusionShadowBounds.verticalDropPadding(0.5, 1.0) == 1.5);
+        assertTrue(OcclusionShadowBounds.verticalDropPadding(2.0, 1.0) == 2.0);
+        assertTrue(OcclusionShadowBounds.verticalDropPadding(2.0, 2.0) == 3.0);
+        assertTrue(OcclusionShadowBounds.verticalRisePadding(0.5) == 1.0);
+        assertTrue(OcclusionShadowBounds.verticalRisePadding(0.0) == 0.0);
+    }
+
+    @Test
     void rejectsInvalidAxisAndFaceEdges() {
         assertFalse(OcclusionSampling.isFullyOccludedByBlockFace(
                 2, 0.25, 0.25, 3, 0.75, 0.75,
