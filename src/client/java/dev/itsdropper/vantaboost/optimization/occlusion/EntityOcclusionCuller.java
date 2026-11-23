@@ -88,7 +88,7 @@ public final class EntityOcclusionCuller {
                     : livingRenderer ? LivingEntityRenderer.class : EntityRenderer.class;
 
             return new RendererEligibility(
-                    RendererOverridePolicy.declaresSingleArgumentMethod(
+                    RendererOverridePolicy.declaresMethodWithFirstParameter(
                             rendererType, nameTagBase, "shouldShowName", Entity.class),
                     RendererOverridePolicy.declaresSingleArgumentMethod(
                             rendererType, livingBase, "getBoundingBoxForCulling", Entity.class),
