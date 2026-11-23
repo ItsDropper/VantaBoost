@@ -11,6 +11,6 @@ public final class VantaBoost implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("VantaBoost {} initialized", BuildInfo.VERSION);
+        LOGGER.info("VantaBoost initialized");
     }
 }
