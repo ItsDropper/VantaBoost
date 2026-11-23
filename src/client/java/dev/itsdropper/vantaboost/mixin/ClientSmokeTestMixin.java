@@ -34,6 +34,7 @@ public abstract class ClientSmokeTestMixin {
             Class.forName("net.minecraft.client.renderer.entity.MobRenderer", false, classLoader);
             Class.forName("net.minecraft.client.multiplayer.ClientLevel", false, classLoader);
             Class.forName("net.minecraft.client.renderer.LevelRenderer", false, classLoader);
+            Class.forName("net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
 
             if (!LivingEntityRendererNameTagInvoker.class.isAssignableFrom(
                     Class.forName("net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader))
