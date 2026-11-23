@@ -9,6 +9,37 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OcclusionSamplingTest {
+    private static class TestRenderState {
+    }
+
+    private static class TestLivingRenderState extends TestRenderState {
+    }
+
+    private static class TestEntityRenderer {
+    }
+
+    private static class TestMobRenderer extends TestEntityRenderer {
+        protected float getShadowRadius(TestLivingRenderState state) {
+            return 0.5F;
+        }
+    }
+
+    private static class InheritedMobRenderer extends TestMobRenderer {
+    }
+
+    private static class CustomMobRenderer extends TestMobRenderer {
+        @Override
+        protected float getShadowRadius(TestLivingRenderState state) {
+            return 1.0F;
+        }
+    }
+
+    private static class CustomDisplayRenderer extends TestEntityRenderer {
+        protected float getShadowStrength(TestLivingRenderState state) {
+            return 0.5F;
+        }
+    }
+
     @Test
     void oneOpaqueFaceCanFullyCoverACompactEntityBehindIt() {
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
@@ -189,6 +220,26 @@ class OcclusionSamplingTest {
         assertTrue(OcclusionMotion.isWithinLimit(padding, 1.5));
         assertFalse(OcclusionMotion.isWithinLimit(1.5001, 1.5));
         assertFalse(OcclusionMotion.isWithinLimit(Double.NaN, 1.5));
+    }
+
+    @Test
+    void rendererOverrideDetectionRecognizesSpecializedRenderStateParameters() {
+        assertFalse(RendererOverridePolicy.declaresStateMethod(
+                InheritedMobRenderer.class, TestMobRenderer.class,
+                "getShadowRadius", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresStateMethod(
+                CustomMobRenderer.class, TestMobRenderer.class,
+                "getShadowRadius", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresStateMethod(
+                CustomDisplayRenderer.class, TestEntityRenderer.class,
+                "getShadowStrength", TestRenderState.class));
+    }
+
+    @Test
+    void livingRendererShadowRadiusUsesEntityAndMobAgeScale() {
+        assertEquals(0.5, OcclusionShadowBounds.scaledRadius(0.5, 1.0, 1.0, false));
+        assertEquals(1.0, OcclusionShadowBounds.scaledRadius(0.5, 2.0, 1.0, false));
+        assertEquals(0.25, OcclusionShadowBounds.scaledRadius(0.5, 1.0, 0.5, true));
     }
 
     @Test
