@@ -22,8 +22,9 @@ import java.util.WeakHashMap;
 /**
  * Client-thread-only entity occlusion cache used during entity extraction.
  *
- * <p>World access stays on the client thread. Only stationary vanilla entities
- * with vanilla renderers are considered. A cached result is reused only while
+ * <p>World access stays on the client thread. Vanilla entities with vanilla
+ * renderers are considered only when previous-to-current interpolation can be
+ * enclosed by a bounded expansion of the vanilla culling AABB. A cached result is reused only while
  * the Frustum origin and conservative bounds are unchanged; block and chunk
  * mutations advance a world revision. Query work is bounded per client tick,
  * and every uncertain state fails open.</p>
