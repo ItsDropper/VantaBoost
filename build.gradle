@@ -57,4 +57,9 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    failOnNoDiscoveredTests = true
+
+    testLogging {
+        events "failed", "skipped"
+    }
 }
