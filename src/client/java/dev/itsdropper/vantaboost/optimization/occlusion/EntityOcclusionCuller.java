@@ -444,6 +444,9 @@ public final class EntityOcclusionCuller {
                 }
 
                 var state = level.getBlockState(position);
+                // In 1.21.11, isSolidRender is derived from
+                // Block.isShapeFullBlock(state.getOcclusionShape()), so each
+                // accepted cell contributes a complete opaque unit face.
                 if (!state.isSolidRender()
                         || !state.getBlock().getClass().getName()
                         .startsWith("net.minecraft.world.level.block.")) {
