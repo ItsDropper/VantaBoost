@@ -1,6 +1,6 @@
 # VantaBoost performance research
 
-**Research date:** 2026-11-23  
+**Research date:** 2026-11-24  
 **Target:** Minecraft 1.21.11, Fabric Loader 0.18.1, Java 21, official Mojang mappings  
 **Scope:** source-level investigation plus an experimental entity-occlusion prototype. No VantaBoost runtime benchmark has been run.
 
@@ -64,7 +64,9 @@ Risks: worker-thread data consistency, stale visibility during camera/object mot
 
 **Direct comparison with VantaBoost:**
 - Entity Culling: background culling task; multi-voxel/multi-sample visibility tests; velocity-expanded bounds; entity and block-entity coverage; can skip normal entity render-state extraction.
-- VantaBoost today: synchronous `ClientLevel.clip` raycast; one ray to the AABB center; all cells in a bounded rectangle of adjacent opaque full-block faces on one plane must cover the projected conservative AABB; eligible vanilla entities whose previous-to-current interpolation fits a bounded displacement expansion; renderer-visible name tags fail open after the active renderer's actual name-tag visibility check; 64 new queries per tick; culling is evaluated in `EntityRenderer.shouldRender` during the visibility filter, before that entity's render state is extracted. Unlike Entity Culling, the visibility decision is not precomputed asynchronously.
+- VantaBoost entity path: synchronous `ClientLevel.clip` raycast; one ray to the conservative AABB center; every cell in a bounded rectangle of adjacent opaque full-block faces on one plane must cover the projected bounds; eligible vanilla entities with bounded previous-to-current interpolation; renderer-visible name tags fail open; 64 new queries per tick; evaluated during `EntityRenderer.shouldRender` before entity render-state extraction.
+- VantaBoost block-entity path: synchronous raycast and the same single-plane face-coverage proof; strict exact-class allowlist for selected vanilla block-entity renderers; 32 new queries per tick; evaluated after vanilla `BlockEntityRenderer.shouldRender` succeeds but before `BlockEntityRenderDispatcher` creates or extracts the render state. Globally rendered, off-screen, modded, and unknown renderer/entity pairs fail open. Iris shader packs fail open; Canvas and Entity Culling disable the path.
+- Both VantaBoost paths are experimental and unbenchmarked. Neither has a controlled runtime baseline or completed in-game visual correctness gate. Unlike Entity Culling, neither uses asynchronous immutable snapshots or a general multi-voxel solver.
 - Therefore, VantaBoost is currently narrower and is not faster or more capable by evidence. The single-plane proof is stricter than sparse point sampling, but it still cannot use occluders on multiple depths or non-coplanar walls.
 
 **Required path to a credible Entity Culling competitor:**
@@ -72,10 +74,10 @@ Risks: worker-thread data consistency, stale visibility during camera/object mot
 2. Replace the single-center ray with a conservative multi-point AABB/voxel visibility solver. Use a reusable DDA traversal and test only the AABB boundary points that can be visible from the camera octant; return visible as soon as any sample has an unobstructed path.
 3. Run visibility work asynchronously over immutable entity snapshots. Expand bounds by velocity and renderer-specific conservative bounds; attach world, section and camera generations to each result so stale results fail open.
 4. Apply results before expensive entity render-state extraction, preserving names, leash/vehicle behavior, shadows, glowing, crosshair selection and custom renderers.
-5. Add block-entity support only after entity culling is correct, with explicit dynamic-renderer exclusions.
+5. The first narrow block-entity prototype now exists: it uses a strict vanilla renderer/entity allowlist and runs before render-state extraction. Validate every allowlisted renderer in-game before expanding coverage; dynamic and off-screen renderers must remain excluded.
 6. Benchmark against Entity Culling with identical worlds, camera paths, settings and hardware. Compare p50/p95/p99 frame time, render-thread time, worker CPU, allocation rate, number of visibility queries, and culled/rendered counts. Do not call VantaBoost better until it wins without visual regressions.
 
-**Status:** The existing synchronous entity-only prototype is a correctness experiment, not a competitor. Block-entity culling and the asynchronous voxel solver are not implemented.
+**Status:** The synchronous entity and block-entity prototypes are correctness experiments, not competitors. Block-entity coverage is limited to an exact vanilla allowlist; the asynchronous immutable-snapshot voxel solver is not implemented. No FPS improvement has been measured.
 
 ### B. Redundant framebuffer unbind avoidance
 
@@ -280,7 +282,7 @@ Use a GPU profiler/RenderDoc or vendor tooling for GPU-bound cases and JFR/async
 
 ## Current repository observations
 
-- An experimental entity-only occlusion runtime and two client mixins now exist; block-entity occlusion remains unimplemented.
+- Experimental entity and block-entity occlusion runtimes are implemented with client mixins. Both remain unaccepted pending in-game visual validation and controlled performance measurements.
 - `build.gradle` and `fabric.mod.json` do not depend on Fabric API.
 - `docs/ARCHITECTURE.md` and `fabric.mod.json` no longer declare a Fabric API dependency.
 - The source skill and benchmarking protocol already require profiling, exact descriptors, controlled comparisons and no fabricated FPS claims. This report adds concrete upstream source research.
