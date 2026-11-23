@@ -1,37 +1,35 @@
 package dev.itsdropper.vantaboost.optimization.occlusion;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Strict allowlist for block-entity renderers whose vanilla geometry is known
- * to remain inside a conservative three-block envelope around the block.
+ * Strict allowlist of exact vanilla renderer/block-entity pairs whose geometry
+ * is bounded by the culler's conservative three-block envelope.
  *
- * <p>Renderer and block-entity classes must match exactly. Modded subclasses,
- * globally rendered objects, and off-screen renderers always fail open.</p>
+ * <p>Modded subclasses, mismatched renderer/entity pairs, globally rendered
+ * objects, and off-screen renderers always fail open.</p>
  */
 public final class BlockEntityOcclusionPolicy {
-    private static final Set<String> SUPPORTED_RENDERERS = Set.of(
-            "net.minecraft.client.renderer.blockentity.ChestRenderer",
-            "net.minecraft.client.renderer.blockentity.BedRenderer",
-            "net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer",
-            "net.minecraft.client.renderer.blockentity.DecoratedPotRenderer",
-            "net.minecraft.client.renderer.blockentity.BellRenderer",
-            "net.minecraft.client.renderer.blockentity.EnchantTableRenderer",
-            "net.minecraft.client.renderer.blockentity.LecternRenderer",
-            "net.minecraft.client.renderer.blockentity.CopperGolemStatueBlockRenderer"
-    );
-
-    private static final Set<String> SUPPORTED_BLOCK_ENTITIES = Set.of(
-            "net.minecraft.world.level.block.entity.ChestBlockEntity",
-            "net.minecraft.world.level.block.entity.EnderChestBlockEntity",
-            "net.minecraft.world.level.block.entity.TrappedChestBlockEntity",
-            "net.minecraft.world.level.block.entity.BedBlockEntity",
-            "net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity",
-            "net.minecraft.world.level.block.entity.DecoratedPotBlockEntity",
-            "net.minecraft.world.level.block.entity.BellBlockEntity",
-            "net.minecraft.world.level.block.entity.EnchantingTableBlockEntity",
-            "net.minecraft.world.level.block.entity.LecternBlockEntity",
-            "net.minecraft.world.level.block.entity.CopperGolemStatueBlockEntity"
+    private static final Map<String, Set<String>> SUPPORTED_PAIRS = Map.of(
+            "net.minecraft.client.renderer.blockentity.ChestRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.ChestBlockEntity",
+                    "net.minecraft.world.level.block.entity.EnderChestBlockEntity",
+                    "net.minecraft.world.level.block.entity.TrappedChestBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.BedRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.BedBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.DecoratedPotRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.DecoratedPotBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.BellRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.BellBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.EnchantTableRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.EnchantingTableBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.LecternRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.LecternBlockEntity"),
+            "net.minecraft.client.renderer.blockentity.CopperGolemStatueBlockRenderer", Set.of(
+                    "net.minecraft.world.level.block.entity.CopperGolemStatueBlockEntity")
     );
 
     private BlockEntityOcclusionPolicy() {
@@ -44,7 +42,7 @@ public final class BlockEntityOcclusionPolicy {
             boolean globallyRendered
     ) {
         return !rendersOffScreen && !globallyRendered
-                && SUPPORTED_RENDERERS.contains(rendererClassName)
-                && SUPPORTED_BLOCK_ENTITIES.contains(blockEntityClassName);
+                && SUPPORTED_PAIRS.getOrDefault(rendererClassName, Set.of())
+                .contains(blockEntityClassName);
     }
 }
