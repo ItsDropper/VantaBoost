@@ -236,8 +236,12 @@ public final class EntityOcclusionCuller {
      * occlusion after an occluding wall is removed.
      */
     public static void invalidateWorld() {
+        // A previous "visible" result is conservative forever: keeping it can
+        // only miss a future culling opportunity. An "occluded" result can
+        // become incorrect when any block changes, so its revision must match.
+        // This avoids scanning/clearing the entire weak cache for every block
+        // update in busy worlds.
         worldRevision++;
-        CACHE.clear();
     }
 
     private static void prepareLevel(ClientLevel level) {
@@ -319,7 +323,7 @@ public final class EntityOcclusionCuller {
                 double minX, double minY, double minZ,
                 double maxX, double maxY, double maxZ
         ) {
-            return worldRevision == revision
+            return (!occluded || worldRevision == revision)
                     && this.cameraX == cameraX && this.cameraY == cameraY && this.cameraZ == cameraZ
                     && this.minX == minX && this.minY == minY && this.minZ == minZ
                     && this.maxX == maxX && this.maxY == maxY && this.maxZ == maxZ;
