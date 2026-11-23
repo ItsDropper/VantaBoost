@@ -14,6 +14,13 @@ final class RendererOverridePolicy {
             Class<?> rendererType, Class<?> stopBefore,
             String methodName, Class<?> renderStateBase
     ) {
+        return declaresSingleArgumentMethod(rendererType, stopBefore, methodName, renderStateBase);
+    }
+
+    static boolean declaresSingleArgumentMethod(
+            Class<?> rendererType, Class<?> stopBefore,
+            String methodName, Class<?> parameterBase
+    ) {
         for (Class<?> type = rendererType;
              type != null && type != stopBefore;
              type = type.getSuperclass()) {
@@ -22,7 +29,7 @@ final class RendererOverridePolicy {
                     Class<?>[] parameters = method.getParameterTypes();
                     if (method.getName().equals(methodName)
                             && parameters.length == 1
-                            && renderStateBase.isAssignableFrom(parameters[0])) {
+                            && parameterBase.isAssignableFrom(parameters[0])) {
                         return true;
                     }
                 }
