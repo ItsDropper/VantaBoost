@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "vantaboost",
+  "version": "${version}",
+  "name": "VantaBoost",
+  "description": "A standalone Minecraft performance mod built around measured optimizations.",
+  "authors": ["ItsDropper"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "main": ["dev.itsdropper.vantaboost.VantaBoost"],
+    "client": ["dev.itsdropper.vantaboost.client.VantaBoostClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
