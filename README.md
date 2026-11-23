@@ -20,6 +20,6 @@ VantaBoost does not ship speculative optimizations. Every optimization must have
 
 An experimental entity-occlusion prototype is implemented with geometric correctness tests and a headless client mixin-application smoke test. It is not performance-accepted: there is no controlled baseline or FPS result yet. Block-entity culling and the configuration UI are not implemented.
 
-The prototype only skips conservative vanilla entities fully hidden by one vanilla opaque block face. It fails open for uncertain cases and is disabled with Iris, Canvas, VulkanMod, or EntityCulling installed. To disable it manually, launch with `-Dvantaboost.disableEntityOcclusion=true`.
+The prototype only skips conservative vanilla entities fully hidden by one vanilla opaque block face. It fails open for uncertain cases and is disabled with Iris, Canvas, VulkanMod, EntityCulling, or Entity Model Features installed. To disable it manually, launch with `-Dvantaboost.disableEntityOcclusion=true`.
 
 See the [performance ledger](docs/PERFORMANCE_LEDGER.md) for implementation details and validation status.
