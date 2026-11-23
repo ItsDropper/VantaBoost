@@ -237,6 +237,21 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void faceCellRangesUseFloorCoordinatesForNegativeWorldPositions() {
+        int[] cells = new int[4];
+        assertTrue(OcclusionSampling.getFaceCellRange(
+                new double[]{-2.75, -1.25, -3.75, -2.25}, cells, 64));
+        assertEquals(-3, cells[0]);
+        assertEquals(-2, cells[1]);
+        assertEquals(-4, cells[2]);
+        assertEquals(-3, cells[3]);
+
+        assertFalse(OcclusionSampling.getFaceCellRange(
+                new double[]{-2.75, 2_000_000_000.0, -3.75, 2_000_000_000.0},
+                cells, 64));
+    }
+
+    @Test
     void projectedBoundsRejectPlaneOutsideAnyAabbCorner() {
         double[] projected = new double[4];
         assertFalse(OcclusionSampling.projectAabbOntoPlane(
