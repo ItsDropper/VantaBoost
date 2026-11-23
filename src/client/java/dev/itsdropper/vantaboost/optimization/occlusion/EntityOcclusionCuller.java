@@ -33,7 +33,7 @@ public final class EntityOcclusionCuller {
     private static final int MAX_QUERIES_PER_TICK = 64;
     private static final int QUERY_ID_BUCKETS = 1024;
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
-    private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
+    private static final double MAX_INTERPOLATION_PADDING = 1.5;
     private static final double SHADOW_DROP_PADDING = 1.0;
     private static final int MAX_CACHE_ENTRIES = 16384;
     private static final boolean ENABLED =
@@ -87,7 +87,7 @@ public final class EntityOcclusionCuller {
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
                 || entity.isInvisible() || (client.player != null && entity.isInvisibleTo(client.player))
                 || entity.hasCustomName() || entity.shouldShowName()
-                || entity.isPassenger() || entity.isVehicle() || !entity.onGround()
+                || entity.isPassenger() || entity.isVehicle()
                 || (entity instanceof Leashable leashable && leashable.getLeashHolder() != null)
                 || entity instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal
                 || entity instanceof net.minecraft.world.entity.monster.Guardian
@@ -101,15 +101,18 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        double velocitySquared = entity.getDeltaMovement().lengthSqr();
-        if (!Double.isFinite(velocitySquared) || velocitySquared > MAX_VELOCITY_SQUARED
-                || entity.xOld != entity.getX() || entity.yOld != entity.getY()
-                || entity.zOld != entity.getZ()
-                || entity.yRotO != entity.getYRot() || entity.xRotO != entity.getXRot()
-                || (entity instanceof LivingEntity living
-                && (living.yBodyRotO != living.yBodyRot || living.yHeadRotO != living.yHeadRot))) {
-            // EntityRenderer extracts interpolated positions/rotations. Do not
-            // cull against current bounds while the render state is interpolating.
+        // EntityRenderer interpolates positions between xOld/yOld/zOld and
+        // current coordinates. Expand the vanilla culling AABB by the complete
+        // per-axis displacement so every interpolated position is enclosed.
+        // Large teleports/knockback fail open rather than creating huge bounds.
+        double motionX = Math.abs(entity.xOld - entity.getX());
+        double motionY = Math.abs(entity.yOld - entity.getY());
+        double motionZ = Math.abs(entity.zOld - entity.getZ());
+        if (!Double.isFinite(motionX) || !Double.isFinite(motionY)
+                || !Double.isFinite(motionZ)
+                || motionX > MAX_INTERPOLATION_PADDING
+                || motionY > MAX_INTERPOLATION_PADDING
+                || motionZ > MAX_INTERPOLATION_PADDING) {
             return false;
         }
 
@@ -134,13 +137,13 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        double minX = renderBounds.minX - shadowRadius;
+        double minX = renderBounds.minX - shadowRadius - motionX;
         double minY = renderBounds.minY
-                - (shadowRadius > 0.0 ? SHADOW_DROP_PADDING : 0.0);
-        double minZ = renderBounds.minZ - shadowRadius;
-        double maxX = renderBounds.maxX + shadowRadius;
-        double maxY = renderBounds.maxY;
-        double maxZ = renderBounds.maxZ + shadowRadius;
+                - (shadowRadius > 0.0 ? SHADOW_DROP_PADDING : 0.0) - motionY;
+        double minZ = renderBounds.minZ - shadowRadius - motionZ;
+        double maxX = renderBounds.maxX + shadowRadius + motionX;
+        double maxY = renderBounds.maxY + motionY;
+        double maxZ = renderBounds.maxZ + shadowRadius + motionZ;
 
         double sizeX = maxX - minX;
         double sizeY = maxY - minY;
