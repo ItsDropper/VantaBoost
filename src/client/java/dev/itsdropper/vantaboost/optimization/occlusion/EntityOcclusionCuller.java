@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Leashable;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -90,7 +91,9 @@ public final class EntityOcclusionCuller {
         if (!Double.isFinite(velocitySquared) || velocitySquared > MAX_VELOCITY_SQUARED
                 || entity.xOld != entity.getX() || entity.yOld != entity.getY()
                 || entity.zOld != entity.getZ()
-                || entity.yRotO != entity.getYRot() || entity.xRotO != entity.getXRot()) {
+                || entity.yRotO != entity.getYRot() || entity.xRotO != entity.getXRot()
+                || (entity instanceof LivingEntity living
+                && (living.yBodyRotO != living.yBodyRot || living.yHeadRotO != living.yHeadRot))) {
             // EntityRenderer extracts interpolated positions/rotations. Do not
             // cull against current bounds while the render state is interpolating.
             return false;
