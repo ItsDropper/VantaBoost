@@ -93,6 +93,7 @@ public final class EntityOcclusionCuller {
             double cameraX, double cameraY, double cameraZ,
             double shadowRadius, double shadowStrength, Class<?> rendererType
     ) {
+        EntityOcclusionDiagnostics.recordCandidate();
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
 
@@ -228,6 +229,7 @@ public final class EntityOcclusionCuller {
         if (cached != null && cached.matches(
                 worldRevision, cameraX, cameraY, cameraZ,
                 minX, minY, minZ, maxX, maxY, maxZ)) {
+            EntityOcclusionDiagnostics.recordCacheHit(cached.occluded);
             return cached.occluded;
         }
 
@@ -240,11 +242,13 @@ public final class EntityOcclusionCuller {
                 entityBucket - windowStart, QUERY_ID_BUCKETS);
         if (bucketOffset >= MAX_QUERIES_PER_TICK
                 || queriesThisTick >= MAX_QUERIES_PER_TICK) {
+            EntityOcclusionDiagnostics.recordBudgetSkip();
             return false;
         }
 
         queriesThisTick++;
-        boolean occluded;
+        boolean occluded = false;
+        long queryStarted = EntityOcclusionDiagnostics.ENABLED ? System.nanoTime() : 0L;
         try {
             occluded = isBlockedByOpaqueFullBlock(
                     level, entity, cameraX, cameraY, cameraZ,
@@ -252,6 +256,11 @@ public final class EntityOcclusionCuller {
         } catch (RuntimeException ignored) {
             // World/raycast failures are uncertainty. Never hide an entity.
             occluded = false;
+        } finally {
+            if (EntityOcclusionDiagnostics.ENABLED) {
+                EntityOcclusionDiagnostics.recordRayQuery(
+                        System.nanoTime() - queryStarted, occluded);
+            }
         }
 
         CACHE.put(entity, new CacheEntry(
