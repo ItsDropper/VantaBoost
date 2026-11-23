@@ -33,6 +33,26 @@ Collect frame-time distributions (median, p95, p99, 1% and 0.1% lows), average F
 
 Distinguish CPU command submission from GPU execution. Do not add blocking GPU readbacks or synchronization to normal gameplay.
 
+## Entity occlusion diagnostic mode
+
+The experimental culler exposes opt-in counters. Start Minecraft with:
+
+```text
+-Dvantaboost.profileEntityOcclusion=true
+```
+
+It emits a summary every 300 main entity-extraction frames. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, ray-query count, ray occlusions, and average ray-query time.
+
+To measure the mixin/culler call overhead with the optimization disabled, add:
+
+```text
+-Dvantaboost.disableEntityOcclusion=true
+```
+
+Run the same fixed scene twice: once with the disable property and once without it, keeping the profiling property enabled in both runs. This isolates the cost and effectiveness of the culler path more directly than FPS alone.
+
+**Important:** diagnostic mode calls `System.nanoTime()` for each candidate and therefore perturbs the hot path. Use it to understand query/cache behavior and approximate culler cost, not for final FPS or frame-time acceptance. For final performance comparisons, repeat the same runs with `vantaboost.profileEntityOcclusion` disabled and capture frame times/JFR separately.
+
 ## Comparison procedure
 
 1. Build and benchmark the unmodified baseline commit.
