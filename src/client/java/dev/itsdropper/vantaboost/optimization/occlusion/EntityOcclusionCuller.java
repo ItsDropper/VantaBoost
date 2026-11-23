@@ -382,6 +382,7 @@ public final class EntityOcclusionCuller {
         // This avoids scanning/clearing the entire weak cache for every block
         // update in busy worlds.
         worldRevision++;
+        BlockEntityOcclusionCuller.invalidateWorld();
     }
 
     private static void prepareLevel(ClientLevel level) {
