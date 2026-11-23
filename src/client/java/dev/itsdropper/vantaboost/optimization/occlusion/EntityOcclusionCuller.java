@@ -35,7 +35,7 @@ public final class EntityOcclusionCuller {
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
     private static final double SHADOW_DROP_PADDING = 1.0;
-    private static final int MAX_CACHE_ENTRIES = 4096;
+    private static final int MAX_CACHE_ENTRIES = 16384;
     private static final boolean ENABLED =
             !Boolean.getBoolean("vantaboost.disableEntityOcclusion");
 
