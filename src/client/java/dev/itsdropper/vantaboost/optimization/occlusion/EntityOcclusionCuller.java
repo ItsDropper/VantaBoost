@@ -103,7 +103,25 @@ public final class EntityOcclusionCuller {
             double cameraX, double cameraY, double cameraZ,
             double shadowRadius, double shadowStrength, Class<?> rendererType
     ) {
-        EntityOcclusionDiagnostics.recordCandidate();
+        if (!EntityOcclusionDiagnostics.ENABLED) {
+            return shouldCullInternal(
+                    entity, renderBounds, cameraX, cameraY, cameraZ,
+                    shadowRadius, shadowStrength, rendererType);
+        }
+
+        long started = System.nanoTime();
+        boolean occluded = shouldCullInternal(
+                entity, renderBounds, cameraX, cameraY, cameraZ,
+                shadowRadius, shadowStrength, rendererType);
+        EntityOcclusionDiagnostics.recordCandidate(System.nanoTime() - started, occluded);
+        return occluded;
+    }
+
+    private static boolean shouldCullInternal(
+            Entity entity, AABB renderBounds,
+            double cameraX, double cameraY, double cameraZ,
+            double shadowRadius, double shadowStrength, Class<?> rendererType
+    ) {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
 
