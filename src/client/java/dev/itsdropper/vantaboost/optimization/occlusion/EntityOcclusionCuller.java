@@ -41,7 +41,8 @@ public final class EntityOcclusionCuller {
     private static final boolean UNSUPPORTED_RENDERER_LOADED =
             FabricLoader.getInstance().isModLoaded("iris")
                     || FabricLoader.getInstance().isModLoaded("canvas")
-                    || FabricLoader.getInstance().isModLoaded("vulkanmod");
+                    || FabricLoader.getInstance().isModLoaded("vulkanmod")
+                    || FabricLoader.getInstance().isModLoaded("entityculling");
     private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_RADIUS = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
