@@ -23,11 +23,11 @@ import java.util.WeakHashMap;
 /**
  * Client-thread-only entity occlusion cache used during entity extraction.
  *
- * <p>World access stays on the client thread. Only stationary entities
- * with vanilla renderers are considered. Every cache entry is invalidated by
- * camera movement, entity-bound movement, block changes, or chunk lifecycle
- * changes. Query work is bounded per client tick; when the budget is exhausted
- * entities are rendered normally.</p>
+ * <p>World access stays on the client thread. Only stationary vanilla entities
+ * with vanilla renderers are considered. A cached result is reused only while
+ * the Frustum origin and conservative bounds are unchanged; block and chunk
+ * mutations advance a world revision. Query work is bounded per client tick,
+ * and every uncertain state fails open.</p>
  */
 public final class EntityOcclusionCuller {
     private static final int MAX_QUERIES_PER_TICK = 64;
@@ -36,6 +36,8 @@ public final class EntityOcclusionCuller {
     private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
     private static final double SHADOW_DROP_PADDING = 1.0;
     private static final int MAX_CACHE_ENTRIES = 4096;
+    private static final boolean ENABLED =
+            !Boolean.getBoolean("vantaboost.disableEntityOcclusion");
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
     private static final boolean UNSUPPORTED_RENDERER_LOADED =
@@ -79,7 +81,7 @@ public final class EntityOcclusionCuller {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
 
-        if (UNSUPPORTED_RENDERER_LOADED
+        if (!ENABLED || UNSUPPORTED_RENDERER_LOADED
                 || level == null || entity.level() != level || entity.isRemoved()
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
                 || entity.isInvisible() || (client.player != null && entity.isInvisibleTo(client.player))
@@ -224,7 +226,7 @@ public final class EntityOcclusionCuller {
     public static boolean isMainEntityExtraction(
             net.minecraft.client.renderer.culling.Frustum frustum
     ) {
-        return mainEntityFrustum == frustum;
+        return frustum != null && mainEntityFrustum == frustum;
     }
 
     /**
