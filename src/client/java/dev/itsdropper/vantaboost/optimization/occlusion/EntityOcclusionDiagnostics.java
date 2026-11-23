@@ -24,6 +24,7 @@ public final class EntityOcclusionDiagnostics {
     private static long cacheHits;
     private static long cacheOcclusionHits;
     private static long budgetSkips;
+    private static long faceCellsPlanned;
     private static long occlusionQueries;
     private static long occlusionResults;
     private static long occlusionQueryNanos;
@@ -57,6 +58,12 @@ public final class EntityOcclusionDiagnostics {
         }
     }
 
+    public static void recordFaceCellsPlanned(int cells) {
+        if (ENABLED) {
+            faceCellsPlanned += Math.max(0, cells);
+        }
+    }
+
     public static void recordOcclusionQuery(long elapsedNanos, boolean occluded) {
         if (ENABLED) {
             occlusionQueries++;
@@ -84,10 +91,11 @@ public final class EntityOcclusionDiagnostics {
         VantaBoost.LOGGER.info(
                 "Entity occlusion profile over {} frames: candidates={}, cullerOcclusions={}, "
                         + "avgCuller={}us, maxCuller={}us, cacheHits={}, cachedOcclusions={}, "
-                        + "budgetSkips={}, occlusionQueries={}, occlusionResults={}, avgOcclusionQuery={}us",
+                        + "budgetSkips={}, faceCellsPlanned={}, occlusionQueries={}, "
+                        + "occlusionResults={}, avgOcclusionQuery={}us",
                 frames, candidateCalls, candidateOcclusions, averageCullerMicros,
                 maximumCullerNanos / 1_000L, cacheHits, cacheOcclusionHits, budgetSkips,
-                occlusionQueries, occlusionResults, averageQueryMicros);
+                faceCellsPlanned, occlusionQueries, occlusionResults, averageQueryMicros);
 
         frames = 0L;
         candidateCalls = 0L;
@@ -97,6 +105,7 @@ public final class EntityOcclusionDiagnostics {
         cacheHits = 0L;
         cacheOcclusionHits = 0L;
         budgetSkips = 0L;
+        faceCellsPlanned = 0L;
         occlusionQueries = 0L;
         occlusionResults = 0L;
         occlusionQueryNanos = 0L;
