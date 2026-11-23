@@ -50,20 +50,32 @@ Inspected source:
 - [OcclusionCullingInstance.java](https://github.com/tr7zw/EntityCulling/blob/162c92af05a38db5a4b56bb12012520f462e1658/EntityCulling-Versionless/src/main/java/dev/tr7zw/entityculling/versionless/occlusionculling/OcclusionCullingInstance.java)
 - [BlockEntityRenderDispatcherMixin.java](https://github.com/tr7zw/EntityCulling/blob/162c92af05a38db5a4b56bb12012520f462e1658/src/main/java/dev/tr7zw/entityculling/mixin/BlockEntityRenderDispatcherMixin.java)
 
-Observed design:
-- Collects the entity/block-entity inputs from the client side and passes data to a background culling task.
-- Uses cached voxel/line-of-sight visibility tests against target AABBs.
-- Reuses temporary vectors, arrays and a BitSet to reduce allocation pressure.
-- Expands entity bounds using velocity to reduce false culls for moving objects.
-- Avoids culling very large bounds, glowing/forced-visible objects and entities outside the configured tracing distance.
-- Fails open (visible) if an occlusion test errors.
-- Supports whitelists for modded objects.
+Observed design in the current upstream source:
+- `CullTask` performs culling on a dedicated background thread. The client side supplies entity/block-entity lists, camera position, and render metadata for the worker.
+- `OcclusionCullingInstance` tests a target AABB against the voxel volume it spans. It checks cached voxel results first, then tests candidate boundary voxels and samples multiple points on the relevant voxel faces using a grid-traversal visibility routine.
+- The worker reuses vectors, arrays and a `BitSet`; cache implementations store per-voxel visible/hidden states. `DirectProvider` reads block state directly, while `SimpleCacheProvider` is explicitly marked as a proof of concept and not fully thread-safe.
+- Entity bounds are expanded in the direction of velocity. The task avoids oversized bounds, glowing/forced-visible objects and objects outside its tracing distance; dynamic whitelists are supported.
+- On 1.21.9+, `WorldRendererMixin.extractEntity` short-circuits extraction for culled entities and constructs a minimal invisible render state, avoiding normal renderer-state extraction. This is a material architectural advantage over culling only inside `EntityRenderer.shouldRender`.
+- Exceptions in the voxel solver fail open. Upstream also exposes safe-mode and tracing-distance controls.
 
-Value: potentially high in mob farms, crowded multiplayer areas, villages, and scenes with many hidden block entities.
+Value: broad occlusion coverage for entities and block entities, with asynchronous work and early extraction avoidance. This is a substantially more capable baseline than VantaBoost's current prototype.
 
-Risks: worker-thread data consistency, stale visibility during camera/object motion, false culls, large/custom render bounds, glowing entities, shader shadow passes, and CPU overhead. The upstream project explicitly documents cases requiring whitelisting and notes that CPU-starved systems may not have spare cores for the visibility work.
+Risks: worker-thread data consistency, stale visibility during camera/object motion, false culls, large/custom render bounds, shader shadow passes, and CPU overhead. `DirectProvider` reads live world state from the worker; the alternative `SimpleCacheProvider` source itself warns that it is not yet fully synchronized.
 
-**Status:** Experimental entity-only prototype implemented. It uses the exact 1.21.11 entity-renderer frustum call site and a narrower single-block-face projection proof; it does not copy upstream code. It is not performance-accepted. Block-entity culling remains unimplemented.
+**Direct comparison with VantaBoost:**
+- Entity Culling: background culling task; multi-voxel/multi-sample visibility tests; velocity-expanded bounds; entity and block-entity coverage; can skip normal entity render-state extraction.
+- VantaBoost today: synchronous `ClientLevel.clip` raycast; one ray to the AABB center; one opaque full-block face must geometrically cover all eight conservative AABB corners; stationary vanilla entities only; 64 new queries per tick; culling occurs at the renderer's frustum predicate, after extraction has already begun.
+- Therefore, VantaBoost is currently narrower and is not faster or more capable by evidence. The single-face proof is stricter, but that is a correctness limitation, not a performance advantage.
+
+**Required path to a credible Entity Culling competitor:**
+1. Keep all live `ClientLevel`/chunk access on the client thread. Build immutable, section-local opacity snapshots from chunk data and incremental block updates; workers must never query live Minecraft world state.
+2. Replace the single-center ray with a conservative multi-point AABB/voxel visibility solver. Use a reusable DDA traversal and test only the AABB boundary points that can be visible from the camera octant; return visible as soon as any sample has an unobstructed path.
+3. Run visibility work asynchronously over immutable entity snapshots. Expand bounds by velocity and renderer-specific conservative bounds; attach world, section and camera generations to each result so stale results fail open.
+4. Apply results before expensive entity render-state extraction, preserving names, leash/vehicle behavior, shadows, glowing, crosshair selection and custom renderers.
+5. Add block-entity support only after entity culling is correct, with explicit dynamic-renderer exclusions.
+6. Benchmark against Entity Culling with identical worlds, camera paths, settings and hardware. Compare p50/p95/p99 frame time, render-thread time, worker CPU, allocation rate, number of visibility queries, and culled/rendered counts. Do not call VantaBoost better until it wins without visual regressions.
+
+**Status:** The existing synchronous entity-only prototype is a correctness experiment, not a competitor. Block-entity culling and the asynchronous voxel solver are not implemented.
 
 ### B. Redundant framebuffer unbind avoidance
 
