@@ -276,6 +276,8 @@ class OcclusionSamplingTest {
                     testCase[3], testCase[4], testCase[5],
                     testCase[6], testCase[7], testCase[8],
                     axis, (int) testCase[10], testCase[11], projectedBounds));
+            int[] cellRange = new int[4];
+            assertTrue(OcclusionSampling.getFaceCellRange(projectedBounds, cellRange, 64));
 
             int uAxis = axis == 0 ? 1 : 0;
             int vAxis = axis == 2 ? 1 : 2;
@@ -297,6 +299,10 @@ class OcclusionSamplingTest {
                 assertTrue(projectedU <= projectedBounds[1] + 1.0E-10);
                 assertTrue(projectedV >= projectedBounds[2] - 1.0E-10);
                 assertTrue(projectedV <= projectedBounds[3] + 1.0E-10);
+                assertTrue(projectedU > cellRange[0] + 1.0E-4);
+                assertTrue(projectedU < cellRange[1] + 1.0 - 1.0E-4);
+                assertTrue(projectedV > cellRange[2] + 1.0E-4);
+                assertTrue(projectedV < cellRange[3] + 1.0 - 1.0E-4);
             }
         }
     }
