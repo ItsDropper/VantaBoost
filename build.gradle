@@ -63,3 +63,48 @@ tasks.withType(Test).configureEach {
         events "failed", "skipped"
     }
 }
+
+tasks.register("verifyClientMixinConfiguration") {
+    dependsOn tasks.named("compileClientJava"), tasks.named("processResources")
+
+    doLast {
+        def json = new groovy.json.JsonSlurper()
+        def metadata = json.parse(file("src/main/resources/fabric.mod.json"))
+
+        if (!(metadata.mixins instanceof List) || metadata.mixins.isEmpty()) {
+            throw new GradleException("fabric.mod.json must register at least one mixin config")
+        }
+
+        metadata.mixins.each { configName ->
+            def configFile = file("src/main/resources/${configName}")
+            if (!configFile.isFile()) {
+                throw new GradleException("Registered mixin config is missing: ${configFile}")
+            }
+
+            def config = json.parse(configFile)
+            if (config.required != true || config.injectors?.defaultRequire != 1) {
+                throw new GradleException("Mixin config must be required and use defaultRequire=1: ${configName}")
+            }
+
+            def mixinPackage = config.get("package")?.toString()
+            def clientMixins = config.client
+            if (!mixinPackage || !(clientMixins instanceof List) || clientMixins.isEmpty()) {
+                throw new GradleException("Client mixin config has no package or client mixins: ${configName}")
+            }
+
+            clientMixins.each { mixinName ->
+                def relativeClassPath = "${mixinPackage.replace('.', '/')}/${mixinName}.class"
+                def compiled = sourceSets.client.output.classesDirs.files.any { outputDir ->
+                    new File(outputDir, relativeClassPath).isFile()
+                }
+                if (!compiled) {
+                    throw new GradleException("Declared client mixin was not compiled: ${relativeClassPath}")
+                }
+            }
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn tasks.named("verifyClientMixinConfiguration")
+}
