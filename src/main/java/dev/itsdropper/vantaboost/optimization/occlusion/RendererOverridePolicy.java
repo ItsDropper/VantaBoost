@@ -3,8 +3,8 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
 import java.lang.reflect.Method;
 
 /**
- * Reflection policy for renderer overrides whose first parameter is a render-state
- * type. Called through ClassValue so inspection happens once per renderer class.
+ * Reflection policy for renderer overrides with a parameter assignable to a
+ * supplied base type. Called through ClassValue once per renderer class.
  */
 final class RendererOverridePolicy {
     private RendererOverridePolicy() {
