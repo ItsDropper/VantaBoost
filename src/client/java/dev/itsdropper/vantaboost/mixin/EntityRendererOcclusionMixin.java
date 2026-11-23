@@ -1,5 +1,7 @@
 package dev.itsdropper.vantaboost.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.itsdropper.vantaboost.optimization.occlusion.EntityOcclusionCuller;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,12 +15,11 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * Reuses the exact conservative AABB vanilla already computed for frustum
- * culling. The redirect runs only after vanilla decided the renderer is
- * affected by culling, and preserves the original frustum result.
+ * Wraps the first entity-bounds frustum test without replacing it. MixinExtras
+ * allows this optimization to compose with renderer mods such as VulkanMod
+ * that also wrap or redirect the same vanilla call.
  */
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererOcclusionMixin {
@@ -35,7 +36,7 @@ public abstract class EntityRendererOcclusionMixin {
     @Shadow
     protected abstract boolean shouldShowName(Entity entity, double distanceToCameraSq);
 
-    @Redirect(
+    @WrapOperation(
             method = "shouldRender(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z",
             at = @At(
                     value = "INVOKE",
@@ -46,6 +47,7 @@ public abstract class EntityRendererOcclusionMixin {
     private boolean vantaboost$applyEntityOcclusion(
             Frustum frustum,
             AABB bounds,
+            Operation<Boolean> original,
             Entity entity,
             Frustum originalFrustum,
             double cameraX,
@@ -56,7 +58,9 @@ public abstract class EntityRendererOcclusionMixin {
             return true;
         }
 
-        boolean vanillaVisible = frustum.isVisible(bounds);
+        // Always preserve the wrapped operation. It may include another
+        // renderer's visibility logic (for example VulkanMod's section test).
+        boolean vanillaVisible = original.call(frustum, bounds);
         if (!vanillaVisible
                 || frustum != originalFrustum
                 || !Double.isFinite(cameraX) || !Double.isFinite(cameraY)
