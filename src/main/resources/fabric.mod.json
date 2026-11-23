@@ -7,7 +7,12 @@
   "authors": ["ItsDropper"],
   "license": "MIT",
   "environment": "client",
-  "mixins": ["vantaboost.client.mixins.json"],
+  "mixins": [
+    {
+      "config": "vantaboost.client.mixins.json",
+      "environment": "client"
+    }
+  ],
   "entrypoints": {
     "main": ["dev.itsdropper.vantaboost.VantaBoost"]
   },
