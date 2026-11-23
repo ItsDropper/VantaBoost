@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * affected by culling, and preserves the original frustum result.
  */
 @Mixin(EntityRenderer.class)
-public abstract class EntityRendererOcclusionMixin<T extends Entity> {
+public abstract class EntityRendererOcclusionMixin {
     @Shadow
     @Final
     protected EntityRenderDispatcher entityRenderDispatcher;
@@ -37,7 +37,7 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
     private boolean vantaboost$applyEntityOcclusion(
             Frustum frustum,
             AABB bounds,
-            T entity,
+            Entity entity,
             Frustum originalFrustum,
             double cameraX,
             double cameraY,
