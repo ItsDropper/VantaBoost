@@ -40,6 +40,12 @@ class OcclusionSamplingTest {
         }
     }
 
+    private static class CustomOffsetRenderer extends TestEntityRenderer {
+        protected Object getRenderOffset(TestLivingRenderState state) {
+            return null;
+        }
+    }
+
     @Test
     void oneOpaqueFaceCanFullyCoverACompactEntityBehindIt() {
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
@@ -262,6 +268,9 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomDisplayRenderer.class, TestEntityRenderer.class,
                 "getShadowStrength", TestRenderState.class));
+        assertTrue(RendererOverridePolicy.declaresStateMethod(
+                CustomOffsetRenderer.class, TestEntityRenderer.class,
+                "getRenderOffset", TestRenderState.class));
     }
 
     @Test
