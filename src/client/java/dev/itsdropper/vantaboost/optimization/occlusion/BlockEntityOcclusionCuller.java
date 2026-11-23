@@ -34,7 +34,8 @@ public final class BlockEntityOcclusionCuller {
     private static final double[] PROJECTED_FACE_BOUNDS = new double[4];
     private static final int[] FACE_CELL_RANGE = new int[4];
     private static final boolean ENABLED =
-            !Boolean.getBoolean("vantaboost.disableBlockEntityOcclusion");
+            Boolean.getBoolean("vantaboost.enableBlockEntityOcclusion")
+                    && !Boolean.getBoolean("vantaboost.disableBlockEntityOcclusion");
     private static final boolean UNSUPPORTED_RENDERER_LOADED =
             FabricLoader.getInstance().isModLoaded("canvas")
                     || FabricLoader.getInstance().isModLoaded("entityculling");
@@ -54,6 +55,10 @@ public final class BlockEntityOcclusionCuller {
     }
 
     public static void beginExtraction(Vec3 cameraPosition) {
+        if (!ENABLED) {
+            extractionActive = false;
+            return;
+        }
         extractionActive = true;
         cameraX = cameraPosition.x;
         cameraY = cameraPosition.y;
@@ -76,6 +81,9 @@ public final class BlockEntityOcclusionCuller {
             BlockEntityRenderer renderer,
             Vec3 rendererCameraPosition
     ) {
+        if (!ENABLED) {
+            return false;
+        }
         long started = BlockEntityOcclusionDiagnostics.ENABLED ? System.nanoTime() : 0L;
         boolean occluded = shouldCullInternal(blockEntity, renderer, rendererCameraPosition);
         if (BlockEntityOcclusionDiagnostics.ENABLED) {
