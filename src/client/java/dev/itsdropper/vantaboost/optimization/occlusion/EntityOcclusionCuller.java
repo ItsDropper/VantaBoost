@@ -145,7 +145,8 @@ public final class EntityOcclusionCuller {
         ClientLevel level = client.level;
 
         if (!ENABLED || UNSUPPORTED_RENDERER_LOADED
-                || level == null || entity.level() != level || entity.isRemoved()
+                || level == null || client.player == null
+                || entity.level() != level || entity.isRemoved()
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
                 || entity.isInvisible() || (client.player != null && entity.isInvisibleTo(client.player))
                 || entity.hasCustomName() || entity.shouldShowName()
