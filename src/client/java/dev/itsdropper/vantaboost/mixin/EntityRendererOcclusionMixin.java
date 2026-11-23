@@ -1,6 +1,7 @@
 package dev.itsdropper.vantaboost.mixin;
 
 import dev.itsdropper.vantaboost.optimization.occlusion.EntityOcclusionCuller;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -68,7 +69,8 @@ public abstract class EntityRendererOcclusionMixin {
 
         // shouldShowName is overloaded by LivingEntityRenderer and MobRenderer;
         // calling the Entity-typed base overload would miss those name-tag rules.
-        if (entityRenderDispatcher.camera == null) {
+        if (entityRenderDispatcher.camera == null
+                || entity instanceof LivingEntity && Minecraft.getInstance().player == null) {
             return vanillaVisible;
         }
 
