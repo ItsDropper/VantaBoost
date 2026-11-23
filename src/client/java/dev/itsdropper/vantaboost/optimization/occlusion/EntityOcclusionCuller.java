@@ -28,7 +28,7 @@ public final class EntityOcclusionCuller {
     private static final int QUERY_ID_BUCKETS = 1024;
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
-    private static final double BOUNDS_PADDING = 0.15;
+    private static final double BOUNDS_PADDING = 0.5;
     private static final int MAX_CACHE_ENTRIES = 4096;
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
@@ -46,8 +46,9 @@ public final class EntityOcclusionCuller {
         ClientLevel level = client.level;
 
         if (level == null || entity.level() != level || entity.isRemoved()
-                || entity.isCurrentlyGlowing() || entity.hasCustomName()
-                || entity.isPassenger() || entity.isVehicle()
+                || entity.isCurrentlyGlowing() || entity.isOnFire() || entity.hasCustomName()
+                || entity.isPassenger() || entity.isVehicle() || !entity.onGround()
+                || (entity instanceof net.minecraft.world.entity.Mob mob && mob.isLeashed())
                 || entity instanceof net.minecraft.world.entity.player.Player
                 || entity == client.player
                 || renderBounds == null || cameraPosition == null) {
