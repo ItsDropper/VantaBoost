@@ -2,7 +2,7 @@
 
 An independent Minecraft client performance mod focused on measurable improvements, rendering correctness, and compatibility.
 
-VantaBoost is designed to run without Vanta Client. It provides its own lightweight Minecraft-style configuration screen; Vanta Client may optionally integrate with the same configuration and diagnostics APIs.
+VantaBoost is designed to run without Vanta Client. It will ship with a lightweight Minecraft-native configuration screen; Vanta Client may optionally integrate with the same configuration and diagnostics APIs.
 
 ## Initial target
 
@@ -18,4 +18,4 @@ VantaBoost does not ship speculative optimizations. Every optimization must have
 
 ## Project status
 
-Repository and architecture initialization. No performance improvements are claimed yet.
+Repository and architecture initialization. No configuration UI or performance improvements are claimed as implemented yet.
