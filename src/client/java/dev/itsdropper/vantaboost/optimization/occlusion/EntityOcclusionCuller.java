@@ -64,8 +64,9 @@ public final class EntityOcclusionCuller {
     }
 
     public static boolean shouldCull(
-            Entity entity, AABB renderBounds, Vec3 cameraPosition, double shadowRadius,
-            Class<?> rendererType
+            Entity entity, AABB renderBounds,
+            double cameraX, double cameraY, double cameraZ,
+            double shadowRadius, Class<?> rendererType
     ) {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
@@ -81,7 +82,7 @@ public final class EntityOcclusionCuller {
                 || entity instanceof net.minecraft.world.entity.player.Player
                 || !entity.getClass().getName().startsWith("net.minecraft.world.entity.")
                 || entity == client.player
-                || renderBounds == null || cameraPosition == null) {
+                || renderBounds == null || rendererType == null) {
             return false;
         }
 
@@ -95,8 +96,8 @@ public final class EntityOcclusionCuller {
                 || !Double.isFinite(renderBounds.minX) || !Double.isFinite(renderBounds.minY)
                 || !Double.isFinite(renderBounds.minZ) || !Double.isFinite(renderBounds.maxX)
                 || !Double.isFinite(renderBounds.maxY) || !Double.isFinite(renderBounds.maxZ)
-                || !Double.isFinite(cameraPosition.x) || !Double.isFinite(cameraPosition.y)
-                || !Double.isFinite(cameraPosition.z)) {
+                || !Double.isFinite(cameraX) || !Double.isFinite(cameraY)
+                || !Double.isFinite(cameraZ)) {
             return false;
         }
 
@@ -127,13 +128,13 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        double dx = (minX + maxX) * 0.5 - cameraPosition.x;
-        double dy = (minY + maxY) * 0.5 - cameraPosition.y;
-        double dz = (minZ + maxZ) * 0.5 - cameraPosition.z;
+        double dx = (minX + maxX) * 0.5 - cameraX;
+        double dy = (minY + maxY) * 0.5 - cameraY;
+        double dz = (minZ + maxZ) * 0.5 - cameraZ;
         if (dx * dx + dy * dy + dz * dz > MAX_DISTANCE_SQUARED
-                || (cameraPosition.x >= minX && cameraPosition.x <= maxX
-                && cameraPosition.y >= minY && cameraPosition.y <= maxY
-                && cameraPosition.z >= minZ && cameraPosition.z <= maxZ)) {
+                || (cameraX >= minX && cameraX <= maxX
+                && cameraY >= minY && cameraY <= maxY
+                && cameraZ >= minZ && cameraZ <= maxZ)) {
             return false;
         }
 
@@ -146,7 +147,7 @@ public final class EntityOcclusionCuller {
 
         CacheEntry cached = CACHE.get(entity);
         if (cached != null && cached.matches(
-                worldRevision, cameraPosition,
+                worldRevision, cameraX, cameraY, cameraZ,
                 minX, minY, minZ, maxX, maxY, maxZ)) {
             return cached.occluded;
         }
@@ -167,7 +168,7 @@ public final class EntityOcclusionCuller {
         boolean occluded;
         try {
             occluded = isBlockedByOpaqueFullBlock(
-                    level, entity, cameraPosition,
+                    level, entity, cameraX, cameraY, cameraZ,
                     minX, minY, minZ, maxX, maxY, maxZ);
         } catch (RuntimeException ignored) {
             // World/raycast failures are uncertainty. Never hide an entity.
@@ -176,7 +177,7 @@ public final class EntityOcclusionCuller {
 
         CACHE.put(entity, new CacheEntry(
                 worldRevision,
-                cameraPosition.x, cameraPosition.y, cameraPosition.z,
+                cameraX, cameraY, cameraZ,
                 minX, minY, minZ, maxX, maxY, maxZ,
                 occluded));
 
@@ -210,13 +211,14 @@ public final class EntityOcclusionCuller {
     private static boolean isBlockedByOpaqueFullBlock(
             ClientLevel level,
             Entity entity,
-            Vec3 cameraPosition,
+            double cameraX, double cameraY, double cameraZ,
             double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ
     ) {
         double targetX = (minX + maxX) * 0.5;
         double targetY = (minY + maxY) * 0.5;
         double targetZ = (minZ + maxZ) * 0.5;
+        Vec3 cameraPosition = new Vec3(cameraX, cameraY, cameraZ);
         Vec3 target = new Vec3(targetX, targetY, targetZ);
         BlockHitResult hit = level.clip(new ClipContext(
                 cameraPosition,
@@ -253,7 +255,7 @@ public final class EntityOcclusionCuller {
         return OcclusionSampling.isFullyOccludedByBlockFace(
                 minX, minY, minZ,
                 maxX, maxY, maxZ,
-                cameraPosition.x, cameraPosition.y, cameraPosition.z,
+                cameraX, cameraY, cameraZ,
                 axis, normalStep, plane, minU, maxU, minV, maxV);
     }
 
@@ -265,12 +267,12 @@ public final class EntityOcclusionCuller {
             boolean occluded
     ) {
         private boolean matches(
-                long revision, Vec3 camera,
+                long revision, double cameraX, double cameraY, double cameraZ,
                 double minX, double minY, double minZ,
                 double maxX, double maxY, double maxZ
         ) {
             return worldRevision == revision
-                    && cameraX == camera.x && cameraY == camera.y && cameraZ == camera.z
+                    && this.cameraX == cameraX && this.cameraY == cameraY && this.cameraZ == cameraZ
                     && this.minX == minX && this.minY == minY && this.minZ == minZ
                     && this.maxX == maxX && this.maxY == maxY && this.maxZ == maxZ;
         }
