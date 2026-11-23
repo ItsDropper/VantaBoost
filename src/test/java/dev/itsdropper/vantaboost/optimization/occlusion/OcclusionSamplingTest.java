@@ -61,6 +61,18 @@ class OcclusionSamplingTest {
                 5, 0.5, 0.5,
                 0, 1, 1,
                 0, 1, 0, 1));
+
+        assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
+                0.25, -3, 0.25, 0.75, -2, 0.75,
+                0.5, 5, 0.5,
+                1, 1, 1,
+                0, 1, 0, 1));
+
+        assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
+                0.25, 0.25, -3, 0.75, 0.75, -2,
+                0.5, 0.5, 5,
+                2, 1, 1,
+                0, 1, 0, 1));
     }
 
     @Test
