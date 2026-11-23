@@ -12,6 +12,12 @@ public final class OcclusionShadowBounds {
     private OcclusionShadowBounds() {
     }
 
+    public static double scaledRadius(
+            double baseRadius, double entityScale, double ageScale, boolean mobRenderer
+    ) {
+        return baseRadius * entityScale * (mobRenderer ? ageScale : 1.0);
+    }
+
     public static double horizontalPadding(double shadowRadius) {
         return shadowRadius > 0.0 ? shadowRadius + 1.0 : 0.0;
     }
