@@ -76,7 +76,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Relevant source: Entity Culling `CullTask` and `OcclusionCullingInstance`
 - Profile artifact and commit: None
 - Measured baseline cost: Unknown
-- Hypothesis: A cached single-block-face visibility proof can skip rendering eligible entities fully hidden behind an opaque full block in crowded scenes.
+- Hypothesis: A cached single-plane face-coverage proof can skip rendering eligible entities fully hidden behind a bounded rectangle of adjacent opaque full blocks in crowded scenes.
 - Correctness constraints: Fail open on uncertainty, project the complete conservative render and shadow envelope through a fully opaque rectangle of adjacent full-block faces on one plane, invalidate on camera/bounds/world changes, and preserve renderer-visible names, fire, glow, leashes, and custom renderers.
 - Compatibility risks: Renderer-specific geometry beyond the reported bounds, block-state opacity semantics, world mutation invalidation, and CPU cost of ray queries.
 - Decision: Keep the prototype narrow. Bounded interpolation is supported, but do not broaden to modded renderers or block entities until runtime visual checks and profiles justify it.
