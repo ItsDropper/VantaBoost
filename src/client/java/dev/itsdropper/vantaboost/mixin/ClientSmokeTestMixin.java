@@ -31,6 +31,7 @@ public abstract class ClientSmokeTestMixin {
         try {
             Class.forName("net.minecraft.client.renderer.entity.EntityRenderer", false, classLoader);
             Class.forName("net.minecraft.client.multiplayer.ClientLevel", false, classLoader);
+            Class.forName("net.minecraft.client.renderer.LevelRenderer", false, classLoader);
         } catch (ClassNotFoundException exception) {
             throw new IllegalStateException("Could not load VantaBoost mixin smoke-test targets", exception);
         }
