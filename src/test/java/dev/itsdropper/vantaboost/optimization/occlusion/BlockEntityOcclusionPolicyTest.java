@@ -49,17 +49,17 @@ class BlockEntityOcclusionPolicyTest {
         String renderer = RENDERER_PREFIX + "ChestRenderer";
         String blockEntity = ENTITY_PREFIX + "ChestBlockEntity";
 
-        assertFalse(BlockEntityOcclusionPolicy.isSupported(renderer, blockEntity, true, false));
-        assertFalse(BlockEntityOcclusionPolicy.isSupported(renderer, blockEntity, false, true));
+        assertFalse(BlockEntityOcclusionPolicy.isEligible(renderer, blockEntity, true, false));
+        assertFalse(BlockEntityOcclusionPolicy.isEligible(renderer, blockEntity, false, true));
     }
 
     private static void assertSupported(String renderer, String blockEntity) {
-        assertTrue(BlockEntityOcclusionPolicy.isSupported(
+        assertTrue(BlockEntityOcclusionPolicy.isEligible(
                 RENDERER_PREFIX + renderer, ENTITY_PREFIX + blockEntity, false, false));
     }
 
     private static void assertRejected(String renderer, String blockEntity) {
-        assertFalse(BlockEntityOcclusionPolicy.isSupported(
+        assertFalse(BlockEntityOcclusionPolicy.isEligible(
                 renderer, blockEntity, false, false));
     }
 }
