@@ -75,6 +75,18 @@ public final class EntityOcclusionCuller {
         }
     };
 
+    private static final ClassValue<Boolean> HAS_CUSTOM_NAME_TAG_POLICY = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            Class<?> stopBefore = MobRenderer.class.isAssignableFrom(rendererType)
+                    ? MobRenderer.class
+                    : LivingEntityRenderer.class.isAssignableFrom(rendererType)
+                    ? LivingEntityRenderer.class : EntityRenderer.class;
+            return RendererOverridePolicy.declaresSingleArgumentMethod(
+                    rendererType, stopBefore, "shouldShowName", Entity.class);
+        }
+    };
+
     private static final ClassValue<Boolean> HAS_CUSTOM_SUBMIT = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
@@ -201,6 +213,7 @@ public final class EntityOcclusionCuller {
                 || HAS_CUSTOM_SHADOW_STRENGTH.get(rendererType)
                 || HAS_CUSTOM_CULLING_BOUNDS.get(rendererType)
                 || HAS_CUSTOM_SUBMIT.get(rendererType)
+                || HAS_CUSTOM_NAME_TAG_POLICY.get(rendererType)
                 || HAS_CUSTOM_LIVING_SCALE.get(rendererType)
                 || HAS_CUSTOM_LIVING_ROTATIONS.get(rendererType)
                 // Dispatcher applies this offset after entity extraction; vanilla's
