@@ -167,6 +167,19 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void visibleCacheEntriesSurviveWorldRevisionsButOccludedEntriesDoNot() {
+        var visible = new EntityOcclusionCuller.CacheEntry(
+                4L, 1, 2, 3, 4, 5, 6, 7, 8, 9, false);
+        var occluded = new EntityOcclusionCuller.CacheEntry(
+                4L, 1, 2, 3, 4, 5, 6, 7, 8, 9, true);
+
+        assertTrue(visible.matches(5L, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+        assertFalse(occluded.matches(5L, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+        assertTrue(occluded.matches(4L, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+        assertFalse(visible.matches(5L, 1, 2, 3, 4, 5, 6, 7, 8, 10));
+    }
+
+    @Test
     void rejectsInvalidAxisAndFaceEdges() {
         assertFalse(OcclusionSampling.isFullyOccludedByBlockFace(
                 2, 0.25, 0.25, 3, 0.75, 0.75,
