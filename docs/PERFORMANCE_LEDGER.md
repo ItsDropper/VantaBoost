@@ -68,7 +68,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Compatibility risks: Sodium internals and particle mods.
 - Decision: Prototype only if particle-heavy profiling supports it.
 
-### [VB-R03] Entity and block-entity occlusion culling
+### [VB-R03] Conservative entity occlusion culling
 
 - Status: Implemented — experimental entity-renderer mixin; not performance-accepted
 - Target Minecraft version: 1.21.11
@@ -76,15 +76,15 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Relevant source: Entity Culling `CullTask` and `OcclusionCullingInstance`
 - Profile artifact and commit: None
 - Measured baseline cost: Unknown
-- Hypothesis: Asynchronous conservative visibility tests can avoid rendering hidden entity/block-entity bounds in crowded scenes.
-- Correctness constraints: Fail open on uncertainty, conservative bounds, velocity expansion, camera freshness, render bounds and whitelist support.
-- Compatibility risks: Worker-thread snapshots, animated/modded entities, shader shadow passes and CPU contention.
-- Decision: Prototype only after measuring object rendering cost and designing stale-result/false-cull tests.
+- Hypothesis: A cached single-block-face visibility proof can skip rendering stationary entities fully hidden behind an opaque full block in crowded scenes.
+- Correctness constraints: Fail open on uncertainty, project the complete conservative render AABB through one opaque full-block face, invalidate on camera/bounds/world changes, and preserve shadows, names, fire, glow, leashes, and custom renderers.
+- Compatibility risks: Renderer-specific geometry beyond the reported bounds, block-state opacity semantics, world mutation invalidation, and CPU cost of ray queries.
+- Decision: Keep the prototype narrow. Do not broaden to moving entities, modded renderers, or block entities until runtime visual checks and profiles justify it.
 - Implementation: `EntityRendererOcclusionMixin` injects at the RETURN of official-mapped `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z`. It only considers vanilla-package renderers whose vanilla culling predicate accepted the entity. The cache is render-thread-only and weak-keyed by entity identity.
 - Occlusion proof: one block-collision ray from the camera to the conservative bounds center must hit a block whose `BlockState.isSolidRender()` is true. The hit face must lie between the camera and every AABB corner, and perspective projection of all eight corners onto that face must fall strictly inside the same unit face rectangle. If any condition fails, render normally.
 - Eligibility: stationary, grounded, non-player entities only. Glowing, burning, named, leashed, mounted, passenger, custom-renderer, and renderer-opted-out entities fail open. Renderer shadow radius expands the tested bounds so the ground-shadow footprint is included.
 - Cache invalidation: exact camera and bounds snapshots are part of each entry. ClientLevel block changes, chunk loads, chunk unloads, and world changes invalidate cached visibility. A rotating entity-ID window limits first-time queries to 64 per game tick.
-- CI coverage: JUnit geometry tests cover all three face axes, both camera sides, projected bounds outside the face, bounds crossing the occluder plane, invalid bounds, and edge margins. The workflow is configured to run `clean build`; no passing workflow result has yet been observed.
+- CI coverage: JUnit geometry tests cover all three face axes, both camera sides, projected bounds outside the face, bounds crossing the occluder plane, invalid bounds, and edge margins. `verifyClientMixinConfiguration` checks metadata registration, required injection policy, and compiled client mixin classes. The workflow runs `clean build` on push; no passing workflow result has yet been observed.
 - Limitations: this is a single-block-face occlusion test, not a general multi-block/voxel occlusion solver. It deliberately misses many valid culling opportunities. No VantaBoost runtime baseline, launch test, visual regression test, or FPS measurement exists; performance acceptance is therefore pending.
 
 ### [VB-R04] Deferred sky rendering
