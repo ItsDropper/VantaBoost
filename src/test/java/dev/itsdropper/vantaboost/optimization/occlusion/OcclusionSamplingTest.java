@@ -20,6 +20,22 @@ class OcclusionSamplingTest {
         }
     }
 
+    private static class TestCullingPolicyRenderer {
+        protected boolean affectedByCulling(TestEntity entity) {
+            return true;
+        }
+    }
+
+    private static class InheritedCullingPolicyRenderer extends TestCullingPolicyRenderer {
+    }
+
+    private static class CustomCullingPolicyRenderer extends TestCullingPolicyRenderer {
+        @Override
+        protected boolean affectedByCulling(TestEntity entity) {
+            return false;
+        }
+    }
+
     private static class TestNameTagSubmissionRenderer {
         protected void submitNameTag(TestRenderState state, Object pose, Object collector, Object camera) {
         }
@@ -496,6 +512,16 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void rendererSpecificCullingPoliciesAreDetected() {
+        assertFalse(RendererOverridePolicy.declaresSingleArgumentMethod(
+                InheritedCullingPolicyRenderer.class, TestCullingPolicyRenderer.class,
+                "affectedByCulling", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresSingleArgumentMethod(
+                CustomCullingPolicyRenderer.class, TestCullingPolicyRenderer.class,
+                "affectedByCulling", TestEntity.class));
     }
 
     @Test
