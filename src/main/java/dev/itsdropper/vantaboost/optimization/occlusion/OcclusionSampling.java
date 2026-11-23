@@ -10,7 +10,7 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
  */
 public final class OcclusionSampling {
     private static final double MIN_EXTENT = 0.2;
-    private static final double MAX_EXTENT = 6.0;
+    private static final double MAX_EXTENT = 4.5;
     private static final double PLANE_EPSILON = 1.0E-5;
     private static final double FACE_EDGE_MARGIN = 1.0E-4;
 
