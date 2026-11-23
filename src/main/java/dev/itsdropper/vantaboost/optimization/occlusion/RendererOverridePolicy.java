@@ -17,6 +17,30 @@ final class RendererOverridePolicy {
         return declaresSingleArgumentMethod(rendererType, stopBefore, methodName, renderStateBase);
     }
 
+    static boolean declaresMethodWithFirstParameter(
+            Class<?> rendererType, Class<?> stopBefore,
+            String methodName, Class<?> parameterBase
+    ) {
+        for (Class<?> type = rendererType;
+             type != null && type != stopBefore;
+             type = type.getSuperclass()) {
+            try {
+                for (Method method : type.getDeclaredMethods()) {
+                    Class<?>[] parameters = method.getParameterTypes();
+                    if (method.getName().equals(methodName)
+                            && parameters.length > 0
+                            && parameterBase.isAssignableFrom(parameters[0])) {
+                        return true;
+                    }
+                }
+            } catch (SecurityException ignored) {
+                // Inability to inspect a renderer must fail closed.
+                return true;
+            }
+        }
+        return false;
+    }
+
     static boolean declaresSingleArgumentMethod(
             Class<?> rendererType, Class<?> stopBefore,
             String methodName, Class<?> parameterBase
