@@ -29,6 +29,9 @@ public abstract class EntityRendererOcclusionMixin {
     @Shadow
     protected float shadowStrength;
 
+    @Shadow
+    protected abstract boolean shouldShowName(Entity entity, double distanceToCameraSq);
+
     @Redirect(
             method = "shouldRender(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z",
             at = @At(
@@ -58,6 +61,14 @@ public abstract class EntityRendererOcclusionMixin {
                 || !EntityOcclusionCuller.isMainEntityExtraction(frustum)
                 || entity == entityRenderDispatcher.crosshairPickEntity
                 || !this.getClass().getName().startsWith("net.minecraft.client.renderer.entity.")) {
+            return vanillaVisible;
+        }
+
+        // The extracted name-tag attachment can extend beyond the entity AABB.
+        // Ask the actual renderer (including LivingEntityRenderer team rules)
+        // whether it will attach a label before allowing occlusion to skip it.
+        if (entityRenderDispatcher.camera == null
+                || this.shouldShowName(entity, entityRenderDispatcher.distanceToSqr(entity))) {
             return vanillaVisible;
         }
 
