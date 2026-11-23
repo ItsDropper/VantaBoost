@@ -174,6 +174,23 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void interpolationPaddingCoversEveryPositionBetweenPreviousAndCurrent() {
+        double previous = -0.75;
+        double current = 0.5;
+        double padding = OcclusionMotion.interpolationPadding(previous, current);
+
+        for (int step = 0; step <= 100; step++) {
+            double partialTick = step / 100.0;
+            double interpolated = previous + (current - previous) * partialTick;
+            assertTrue(Math.abs(interpolated - current) <= padding + 1.0E-12);
+        }
+
+        assertTrue(OcclusionMotion.isWithinLimit(padding, 1.5));
+        assertFalse(OcclusionMotion.isWithinLimit(1.5001, 1.5));
+        assertFalse(OcclusionMotion.isWithinLimit(Double.NaN, 1.5));
+    }
+
+    @Test
     void rejectsInvalidAxisAndFaceEdges() {
         assertFalse(OcclusionSampling.isFullyOccludedByBlockFace(
                 2, 0.25, 0.25, 3, 0.75, 0.75,
