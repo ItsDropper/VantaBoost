@@ -165,6 +165,9 @@ public final class EntityOcclusionCuller {
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
                 || entity.isInvisible() || (client.player != null && entity.isInvisibleTo(client.player))
                 || entity.hasCustomName() || entity.shouldShowName()
+                || (entity instanceof LivingEntity livingEntity
+                && (livingEntity.getPose() == net.minecraft.world.entity.Pose.SLEEPING
+                || livingEntity.deathTime > 0 || livingEntity.isAutoSpinAttack()))
                 || entity.isPassenger() || entity.isVehicle()
                 || (entity instanceof Leashable leashable && leashable.getLeashHolder() != null)
                 || entity instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal
