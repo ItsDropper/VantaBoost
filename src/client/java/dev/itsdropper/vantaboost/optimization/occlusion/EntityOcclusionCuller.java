@@ -56,6 +56,16 @@ public final class EntityOcclusionCuller {
                     || FabricLoader.getInstance().isModLoaded("vulkanmod")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
                     || FabricLoader.getInstance().isModLoaded("entity_model_features");
+    private static final ClassValue<Boolean> HAS_CUSTOM_SUBMIT = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            Class<?> stopBefore = LivingEntityRenderer.class.isAssignableFrom(rendererType)
+                    ? LivingEntityRenderer.class : EntityRenderer.class;
+            return RendererOverridePolicy.declaresMethodWithFirstParameter(
+                    rendererType, stopBefore, "submit", EntityRenderState.class);
+        }
+    };
+
     private static final ClassValue<Boolean> HAS_CUSTOM_CULLING_BOUNDS = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
@@ -168,6 +178,7 @@ public final class EntityOcclusionCuller {
                 || HAS_CUSTOM_SHADOW_RADIUS.get(rendererType)
                 || HAS_CUSTOM_SHADOW_STRENGTH.get(rendererType)
                 || HAS_CUSTOM_CULLING_BOUNDS.get(rendererType)
+                || HAS_CUSTOM_SUBMIT.get(rendererType)
                 // Dispatcher applies this offset after entity extraction; vanilla's
                 // culling AABB does not include arbitrary renderer-specific offsets.
                 || HAS_CUSTOM_RENDER_OFFSET.get(rendererType)
