@@ -94,6 +94,17 @@ Do not create a mixin configuration just to reserve a directory. For each future
 
 Version values live in gradle.properties and must be updated as a coordinated, tested target-version change.
 
+## Experimental entity occlusion integration
+
+The current prototype is client-only and does not add a Vanta Client dependency.
+
+- `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z` is intercepted at RETURN, after vanilla frustum/distance acceptance.
+- `ClientLevel.setBlock(BlockPos, BlockState, int, int)Z`, `onChunkLoaded(ChunkPos)V`, and `unload(LevelChunk)V` invalidate cached visibility.
+- The occlusion test accepts only one opaque full-block face that geometrically covers the complete projected conservative AABB. Uncertainty always renders.
+- Modded renderer classes, dynamic/airborne entities, players, named/glowing/burning/leashed entities, and entities with passenger relationships are excluded.
+- Ground-shadow radius is included in the tested bounds.
+- This remains experimental until CI build, actual launch/mixin application, visual regression checks, compatibility checks, and controlled profiling are verified.
+
 ## Initialization non-goals
 
 No speculative culling, caching, batching, pooling, or multithreading. No claimed FPS gains. No mandatory Vanta Client integration. No server-side component. No empty optimization registry or unused plugin framework.
