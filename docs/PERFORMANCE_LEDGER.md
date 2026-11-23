@@ -108,7 +108,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Regressions: Unknown
 - Validation evidence: Pure-Java allowlist tests and CI build/client mixin smoke coverage are being added; no in-game visual correctness test or controlled performance measurement exists yet.
 - Rollback condition: Revert/disable if any allowlisted renderer is visibly clipped, if occlusion invalidation is stale, or if the culler overhead exceeds saved extraction/submission time in representative scenes.
-- Decision and rationale: Keep as an experimental implementation only. Do not claim FPS gains or mark accepted until the visual gate and controlled benchmark pass. Disable manually with -Dvantaboost.disableBlockEntityOcclusion=true.
+- Decision and rationale: Keep as an experimental implementation disabled by default. Enable manually with -Dvantaboost.enableBlockEntityOcclusion=true; force it off with -Dvantaboost.disableBlockEntityOcclusion=true. Do not claim FPS gains or mark accepted until the visual gate and controlled benchmark pass.
 
 ### [VB-R04] Deferred sky rendering
 
