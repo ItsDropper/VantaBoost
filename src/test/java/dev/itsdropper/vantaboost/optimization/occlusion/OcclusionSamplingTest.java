@@ -11,6 +11,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OcclusionSamplingTest {
     private static class TestRenderState {
     }
+    private static class TestEntity {
+    }
+
+    private static class VanillaBoundsRenderer {
+        protected Object getBoundingBoxForCulling(TestEntity entity) {
+            return entity;
+        }
+    }
+
+    private static class InheritedBoundsRenderer extends VanillaBoundsRenderer {
+    }
+
+    private static class CustomBoundsRenderer extends VanillaBoundsRenderer {
+        @Override
+        protected Object getBoundingBoxForCulling(TestEntity entity) {
+            return entity;
+        }
+    }
+
 
     private static class TestLivingRenderState extends TestRenderState {
     }
@@ -271,6 +290,16 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void rendererSpecificCullingBoundsOverridesFailClosed() {
+        assertFalse(RendererOverridePolicy.declaresSingleArgumentMethod(
+                InheritedBoundsRenderer.class, VanillaBoundsRenderer.class,
+                "getBoundingBoxForCulling", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresSingleArgumentMethod(
+                CustomBoundsRenderer.class, VanillaBoundsRenderer.class,
+                "getBoundingBoxForCulling", TestEntity.class));
     }
 
     @Test
