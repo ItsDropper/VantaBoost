@@ -75,7 +75,12 @@ tasks.register("verifyClientMixinConfiguration") {
             throw new GradleException("fabric.mod.json must register at least one mixin config")
         }
 
-        metadata.mixins.each { configName ->
+        metadata.mixins.each { configEntry ->
+            def configName = configEntry instanceof Map ? configEntry.config : configEntry.toString()
+            if (configEntry instanceof Map && configEntry.environment != "client") {
+                throw new GradleException("Client mixin config must be environment-scoped: ${configName}")
+            }
+
             def configFile = file("src/main/resources/${configName}")
             if (!configFile.isFile()) {
                 throw new GradleException("Registered mixin config is missing: ${configFile}")
@@ -87,12 +92,12 @@ tasks.register("verifyClientMixinConfiguration") {
             }
 
             def mixinPackage = config.get("package")?.toString()
-            def clientMixins = config.client
-            if (!mixinPackage || !(clientMixins instanceof List) || clientMixins.isEmpty()) {
-                throw new GradleException("Client mixin config has no package or client mixins: ${configName}")
+            def declaredMixins = config.mixins
+            if (!mixinPackage || !(declaredMixins instanceof List) || declaredMixins.isEmpty()) {
+                throw new GradleException("Client mixin config has no package or mixins: ${configName}")
             }
 
-            clientMixins.each { mixinName ->
+            declaredMixins.each { mixinName ->
                 def relativeClassPath = "${mixinPackage.replace('.', '/')}/${mixinName}.class"
                 def compiled = sourceSets.client.output.classesDirs.files.any { outputDir ->
                     new File(outputDir, relativeClassPath).isFile()
