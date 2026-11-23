@@ -64,7 +64,7 @@ Risks: worker-thread data consistency, stale visibility during camera/object mot
 
 **Direct comparison with VantaBoost:**
 - Entity Culling: background culling task; multi-voxel/multi-sample visibility tests; velocity-expanded bounds; entity and block-entity coverage; can skip normal entity render-state extraction.
-- VantaBoost today: synchronous `ClientLevel.clip` raycast; one ray to the AABB center; one opaque full-block face must geometrically cover all eight conservative AABB corners; stationary vanilla entities only; 64 new queries per tick; culling occurs at the renderer's frustum predicate, after extraction has already begun.
+- VantaBoost today: synchronous `ClientLevel.clip` raycast; one ray to the AABB center; one opaque full-block face must geometrically cover all eight conservative AABB corners; stationary vanilla entities only; 64 new queries per tick; culling is evaluated in `EntityRenderer.shouldRender` during the visibility filter, before that entity's render state is extracted. Unlike Entity Culling, the visibility decision is not precomputed asynchronously.
 - Therefore, VantaBoost is currently narrower and is not faster or more capable by evidence. The single-face proof is stricter, but that is a correctness limitation, not a performance advantage.
 
 **Required path to a credible Entity Culling competitor:**
