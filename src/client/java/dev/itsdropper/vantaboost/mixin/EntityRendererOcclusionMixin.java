@@ -64,12 +64,8 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
         if (bounds == null) {
             return;
         }
-        if (shadowRadius > 0.0F) {
-            // Include the vanilla ground-shadow footprint in the occlusion proof.
-            bounds = bounds.inflate(shadowRadius, 0.0, shadowRadius);
-        }
         if (EntityOcclusionCuller.shouldCull(
-                entity, bounds, entityRenderDispatcher.camera.getPosition())) {
+                entity, bounds, entityRenderDispatcher.camera.getPosition(), shadowRadius)) {
             cir.setReturnValue(false);
         }
     }
