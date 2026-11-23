@@ -20,6 +20,29 @@ class OcclusionSamplingTest {
         }
     }
 
+    private static class TestRenderStateExtractionRenderer {
+        protected void extractRenderState(TestEntity entity, TestRenderState state, float partialTicks) {
+        }
+
+        protected void finalizeRenderState(TestEntity entity, TestRenderState state) {
+        }
+    }
+
+    private static class InheritedRenderStateExtractionRenderer extends TestRenderStateExtractionRenderer {
+    }
+
+    private static class CustomRenderStateExtractionRenderer extends TestRenderStateExtractionRenderer {
+        @Override
+        protected void extractRenderState(TestEntity entity, TestRenderState state, float partialTicks) {
+        }
+    }
+
+    private static class CustomRenderStateFinalizationRenderer extends TestRenderStateExtractionRenderer {
+        @Override
+        protected void finalizeRenderState(TestEntity entity, TestRenderState state) {
+        }
+    }
+
     private static class TestCullingPolicyRenderer {
         protected boolean affectedByCulling(TestEntity entity) {
             return true;
@@ -512,6 +535,19 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void rendererSpecificRenderStateHooksAreDetected() {
+        assertFalse(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                InheritedRenderStateExtractionRenderer.class, TestRenderStateExtractionRenderer.class,
+                "extractRenderState", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomRenderStateExtractionRenderer.class, TestRenderStateExtractionRenderer.class,
+                "extractRenderState", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomRenderStateFinalizationRenderer.class, TestRenderStateExtractionRenderer.class,
+                "finalizeRenderState", TestEntity.class));
     }
 
     @Test
