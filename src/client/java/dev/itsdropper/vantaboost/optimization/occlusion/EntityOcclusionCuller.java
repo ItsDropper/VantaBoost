@@ -53,11 +53,10 @@ public final class EntityOcclusionCuller {
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
     private static final boolean UNSUPPORTED_RENDERER_LOADED =
-            FabricLoader.getInstance().isModLoaded("iris")
-                    || FabricLoader.getInstance().isModLoaded("canvas")
-                    || FabricLoader.getInstance().isModLoaded("vulkanmod")
+            FabricLoader.getInstance().isModLoaded("canvas")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
                     || FabricLoader.getInstance().isModLoaded("entity_model_features");
+    private static boolean irisShaderPackActive;
     private record RendererEligibility(
             boolean customNameTagPolicy,
             boolean customNameTagSubmission,
@@ -163,7 +162,7 @@ public final class EntityOcclusionCuller {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
 
-        if (!ENABLED || UNSUPPORTED_RENDERER_LOADED
+        if (!ENABLED || UNSUPPORTED_RENDERER_LOADED || irisShaderPackActive
                 || level == null || client.player == null
                 || entity.level() != level || entity.isRemoved()
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
@@ -352,6 +351,9 @@ public final class EntityOcclusionCuller {
             net.minecraft.client.renderer.culling.Frustum frustum
     ) {
         mainEntityFrustum = frustum;
+        irisShaderPackActive = IrisShaderPackCompatibility.isShaderPackActive(
+                FabricLoader.getInstance().isModLoaded("iris"),
+                EntityOcclusionCuller.class.getClassLoader());
     }
 
     public static void endMainEntityExtraction(
