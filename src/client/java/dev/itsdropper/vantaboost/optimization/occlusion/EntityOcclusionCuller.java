@@ -81,12 +81,15 @@ public final class EntityOcclusionCuller {
         if (UNSUPPORTED_RENDERER_LOADED
                 || level == null || entity.level() != level || entity.isRemoved()
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
+                || entity.isInvisible() || (client.player != null && entity.isInvisibleTo(client.player))
                 || entity.hasCustomName() || entity.shouldShowName()
                 || entity.isPassenger() || entity.isVehicle() || !entity.onGround()
                 || (entity instanceof Leashable leashable && leashable.getLeashHolder() != null)
                 || entity instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal
                 || entity instanceof net.minecraft.world.entity.monster.Guardian
                 || entity instanceof net.minecraft.world.entity.monster.warden.Warden
+                || entity instanceof net.minecraft.world.entity.monster.EnderMan
+                || entity instanceof net.minecraft.world.entity.monster.Witch
                 || entity instanceof net.minecraft.world.entity.player.Player
                 || !entity.getClass().getName().startsWith("net.minecraft.world.entity.")
                 || entity == client.player
