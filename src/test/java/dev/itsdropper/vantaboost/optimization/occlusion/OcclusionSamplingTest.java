@@ -209,6 +209,42 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void projectsBoundsOntoPlaneAndFindsAllRequiredAdjacentFaceCells() {
+        double[] projected = new double[4];
+        int[] cells = new int[4];
+
+        assertTrue(OcclusionSampling.projectAabbOntoPlane(
+                2.0, 0.25, 0.25, 3.0, 2.75, 0.75,
+                -2.0, 1.5, 0.5, 0, -1, 0.0, projected));
+        assertTrue(OcclusionSampling.getFaceCellRange(projected, cells, 64));
+
+        assertEquals(0, cells[0]);
+        assertEquals(2, cells[1]);
+        assertEquals(0, cells[2]);
+        assertEquals(0, cells[3]);
+        assertTrue(projected[0] > 0.0 && projected[1] < 3.0);
+    }
+
+    @Test
+    void rejectsProjectedFaceCoverageWithHolesOrExcessiveWorkBounds() {
+        int[] cells = new int[4];
+        assertFalse(OcclusionSampling.getFaceCellRange(
+                new double[]{0.00001, 0.5, 0.2, 0.8}, cells, 64));
+        assertFalse(OcclusionSampling.getFaceCellRange(
+                new double[]{0.25, 9.75, 0.25, 9.75}, cells, 64));
+        assertFalse(OcclusionSampling.getFaceCellRange(
+                new double[]{Double.NaN, 1.0, 0.0, 1.0}, cells, 64));
+    }
+
+    @Test
+    void projectedBoundsRejectPlaneOutsideAnyAabbCorner() {
+        double[] projected = new double[4];
+        assertFalse(OcclusionSampling.projectAabbOntoPlane(
+                -0.5, 0.25, 0.25, 3.0, 0.75, 0.75,
+                -2.0, 0.5, 0.5, 0, -1, 0.0, projected));
+    }
+
+    @Test
     void rejectsDegenerateOversizedAndNonFiniteBounds() {
         assertFalse(OcclusionSampling.isFullyOccludedByBlockFace(
                 2, 0, 0.25, 2.1, 0.75, 0.75,
