@@ -24,7 +24,7 @@ import java.util.WeakHashMap;
  * entities are rendered normally.</p>
  */
 public final class EntityOcclusionCuller {
-    private static final int MAX_QUERIES_PER_TICK = 24;
+    private static final int MAX_QUERIES_PER_TICK = 64;
     private static final int QUERY_ID_BUCKETS = 1024;
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
