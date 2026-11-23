@@ -14,6 +14,22 @@ class OcclusionSamplingTest {
     private static class TestEntity {
     }
 
+    private static class TestNameTagRenderer {
+        protected boolean shouldShowName(TestEntity entity, double distanceToCameraSq) {
+            return false;
+        }
+    }
+
+    private static class InheritedNameTagRenderer extends TestNameTagRenderer {
+    }
+
+    private static class CustomNameTagRenderer extends TestNameTagRenderer {
+        @Override
+        protected boolean shouldShowName(TestEntity entity, double distanceToCameraSq) {
+            return true;
+        }
+    }
+
     private static class TestLivingRendererBase {
         protected void scale(TestRenderState state, Object pose) {
         }
@@ -460,6 +476,16 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresStateMethod(
                 CustomOffsetRenderer.class, TestEntityRenderer.class,
                 "getRenderOffset", TestRenderState.class));
+    }
+
+    @Test
+    void rendererSpecificNameTagOverloadsAreDetected() {
+        assertFalse(RendererOverridePolicy.declaresSingleArgumentMethod(
+                InheritedNameTagRenderer.class, TestNameTagRenderer.class,
+                "shouldShowName", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresSingleArgumentMethod(
+                CustomNameTagRenderer.class, TestNameTagRenderer.class,
+                "shouldShowName", TestEntity.class));
     }
 
     @Test
