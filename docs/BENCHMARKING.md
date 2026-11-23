@@ -53,6 +53,20 @@ Run the same fixed scene twice: once with the disable property and once without 
 
 **Important:** diagnostic mode calls `System.nanoTime()` for each candidate and therefore perturbs the hot path. Use it to understand query/cache behavior and approximate culler cost, not for final FPS or frame-time acceptance. For final performance comparisons, repeat the same runs with `vantaboost.profileEntityOcclusion` disabled and capture frame times/JFR separately.
 
+## Entity occlusion correctness gate
+
+Before treating the prototype as ready for performance comparison, validate these cases in a repeatable world:
+
+- Fully hidden eligible entities behind opaque full blocks, with the wall normal along X, Y, and Z and with diagonal camera angles.
+- Entities partially exposed at wall edges, above/below the wall, or around a one-block gap; all visible portions must remain rendered.
+- Entities moving behind walls, crossing the occluder plane, and teleporting; uncertainty must render rather than disappear.
+- Place and remove occluding blocks while entities remain stationary; a previously occluded entity must reappear immediately after the wall is removed.
+- Chunk unload/reload, dimension changes, and world replacement while the culler cache contains positive results.
+- Named entities, team-visible name tags, crosshair-target names, glowing/fire effects, leashes, passengers, and the active camera entity.
+- Entity shadows at fractional positions and near the edge of the occluder; shadows must not pop or disappear independently of the entity.
+
+Run with profiling enabled to confirm that the scene produces candidates, cache hits, occlusion queries, and positive occlusion results. Then repeat frame-time/JFR comparisons with profiling disabled. Do not proceed to another optimization until this correctness gate passes and the culler demonstrates a repeatable benefit without frame-time regressions.
+
 ## Comparison procedure
 
 1. Build and benchmark the unmodified baseline commit.
