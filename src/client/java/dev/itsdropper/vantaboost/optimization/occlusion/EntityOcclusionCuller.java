@@ -63,6 +63,7 @@ public final class EntityOcclusionCuller {
     };
 
     private static WeakReference<ClientLevel> activeLevel = new WeakReference<>(null);
+    private static net.minecraft.client.renderer.culling.Frustum mainEntityFrustum;
     private static long worldRevision;
     private static long budgetTick = Long.MIN_VALUE;
     private static int queriesThisTick;
@@ -204,6 +205,26 @@ public final class EntityOcclusionCuller {
         }
 
         return occluded;
+    }
+
+    public static void beginMainEntityExtraction(
+            net.minecraft.client.renderer.culling.Frustum frustum
+    ) {
+        mainEntityFrustum = frustum;
+    }
+
+    public static void endMainEntityExtraction(
+            net.minecraft.client.renderer.culling.Frustum frustum
+    ) {
+        if (mainEntityFrustum == frustum) {
+            mainEntityFrustum = null;
+        }
+    }
+
+    public static boolean isMainEntityExtraction(
+            net.minecraft.client.renderer.culling.Frustum frustum
+    ) {
+        return mainEntityFrustum == frustum;
     }
 
     /**
