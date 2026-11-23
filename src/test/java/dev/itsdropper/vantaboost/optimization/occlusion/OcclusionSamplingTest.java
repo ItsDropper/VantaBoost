@@ -52,6 +52,24 @@ class OcclusionSamplingTest {
         }
     }
 
+    private static class TestShouldRenderRenderer {
+        protected boolean shouldRender(TestEntity entity, Object frustum,
+                                       double cameraX, double cameraY, double cameraZ) {
+            return true;
+        }
+    }
+
+    private static class InheritedShouldRenderRenderer extends TestShouldRenderRenderer {
+    }
+
+    private static class CustomShouldRenderRenderer extends TestShouldRenderRenderer {
+        @Override
+        protected boolean shouldRender(TestEntity entity, Object frustum,
+                                       double cameraX, double cameraY, double cameraZ) {
+            return false;
+        }
+    }
+
     private static class TestCullingPolicyRenderer {
         protected boolean affectedByCulling(TestEntity entity) {
             return true;
@@ -560,6 +578,16 @@ class OcclusionSamplingTest {
         assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
                 CustomRenderStateFinalizationRenderer.class, TestRenderStateExtractionRenderer.class,
                 "finalizeRenderState", TestEntity.class));
+    }
+
+    @Test
+    void rendererSpecificShouldRenderOverridesAreDetected() {
+        assertFalse(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                InheritedShouldRenderRenderer.class, TestShouldRenderRenderer.class,
+                "shouldRender", TestEntity.class));
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
+                CustomShouldRenderRenderer.class, TestShouldRenderRenderer.class,
+                "shouldRender", TestEntity.class));
     }
 
     @Test
