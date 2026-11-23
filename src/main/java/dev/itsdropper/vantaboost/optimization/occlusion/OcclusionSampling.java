@@ -162,8 +162,10 @@ public final class OcclusionSampling {
         double maxUCellValue = Math.ceil(maxU) - 1.0;
         double minVCellValue = Math.floor(minV);
         double maxVCellValue = Math.ceil(maxV) - 1.0;
-        if (minUCellValue < Integer.MIN_VALUE || maxUCellValue > Integer.MAX_VALUE
-                || minVCellValue < Integer.MIN_VALUE || maxVCellValue > Integer.MAX_VALUE) {
+        if (minUCellValue < Integer.MIN_VALUE || minUCellValue > Integer.MAX_VALUE
+                || maxUCellValue < Integer.MIN_VALUE || maxUCellValue > Integer.MAX_VALUE
+                || minVCellValue < Integer.MIN_VALUE || minVCellValue > Integer.MAX_VALUE
+                || maxVCellValue < Integer.MIN_VALUE || maxVCellValue > Integer.MAX_VALUE) {
             return false;
         }
 
