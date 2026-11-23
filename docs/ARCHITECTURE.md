@@ -107,4 +107,4 @@ The current prototype is client-only and does not add a Vanta Client dependency.
 
 ## Initialization non-goals
 
-No speculative culling, caching, batching, pooling, or multithreading. No claimed FPS gains. No mandatory Vanta Client integration. No server-side component. No empty optimization registry or unused plugin framework.
+No speculative additional culling, caching, batching, pooling, or multithreading beyond the explicitly documented experimental entity-occlusion prototype. No claimed FPS gains. No mandatory Vanta Client integration. No server-side component. No empty optimization registry or unused plugin framework.
