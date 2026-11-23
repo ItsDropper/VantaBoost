@@ -25,8 +25,9 @@ import java.util.WeakHashMap;
  * <p>World access stays on the client thread. Vanilla entities with vanilla
  * renderers are considered only when previous-to-current interpolation can be
  * enclosed by a bounded expansion of the vanilla culling AABB, and renderers
- * using custom shadow radii or render offsets are excluded. A cached result is reused only while
- * the Frustum origin and conservative bounds are unchanged; block and chunk
+ * using custom shadow radii, shadow strengths, or render offsets are excluded.
+ * A cached result is reused only while the Frustum origin and conservative bounds
+ * are unchanged; block and chunk
  * mutations advance a world revision. Query work is bounded per client tick,
  * and every uncertain state fails open.</p>
  */
@@ -167,9 +168,9 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        // EntityRenderer already inflated this AABB by 0.5 blocks. Add only
-        // the base shadow footprint using primitive coordinates, avoiding a
-        // second AABB allocation on the entity-extraction hot path.
+        // EntityRenderer already inflated this AABB by 0.5 blocks. Extend it
+        // using primitive coordinates, avoiding another AABB allocation on
+        // the entity-extraction hot path.
         double rawSizeX = renderBounds.maxX - renderBounds.minX;
         double rawSizeY = renderBounds.maxY - renderBounds.minY;
         double rawSizeZ = renderBounds.maxZ - renderBounds.minZ;
