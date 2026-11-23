@@ -8,8 +8,7 @@
   "license": "MIT",
   "environment": "client",
   "entrypoints": {
-    "main": ["dev.itsdropper.vantaboost.VantaBoost"],
-    "client": ["dev.itsdropper.vantaboost.client.VantaBoostClient"]
+    "main": ["dev.itsdropper.vantaboost.VantaBoost"]
   },
   "depends": {
     "fabricloader": ">=0.18.1",
