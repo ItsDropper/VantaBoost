@@ -24,9 +24,9 @@ public final class EntityOcclusionDiagnostics {
     private static long cacheHits;
     private static long cacheOcclusionHits;
     private static long budgetSkips;
-    private static long rayQueries;
-    private static long rayOcclusions;
-    private static long rayQueryNanos;
+    private static long occlusionQueries;
+    private static long occlusionResults;
+    private static long occlusionQueryNanos;
 
     private EntityOcclusionDiagnostics() {
     }
@@ -57,12 +57,12 @@ public final class EntityOcclusionDiagnostics {
         }
     }
 
-    public static void recordRayQuery(long elapsedNanos, boolean occluded) {
+    public static void recordOcclusionQuery(long elapsedNanos, boolean occluded) {
         if (ENABLED) {
-            rayQueries++;
-            rayQueryNanos += Math.max(0L, elapsedNanos);
+            occlusionQueries++;
+            occlusionQueryNanos += Math.max(0L, elapsedNanos);
             if (occluded) {
-                rayOcclusions++;
+                occlusionResults++;
             }
         }
     }
@@ -79,15 +79,15 @@ public final class EntityOcclusionDiagnostics {
 
         long averageCullerMicros = candidateCalls == 0
                 ? 0L : cullerNanos / candidateCalls / 1_000L;
-        long averageQueryMicros = rayQueries == 0
-                ? 0L : rayQueryNanos / rayQueries / 1_000L;
+        long averageQueryMicros = occlusionQueries == 0
+                ? 0L : occlusionQueryNanos / occlusionQueries / 1_000L;
         VantaBoost.LOGGER.info(
                 "Entity occlusion profile over {} frames: candidates={}, cullerOcclusions={}, "
                         + "avgCuller={}us, maxCuller={}us, cacheHits={}, cachedOcclusions={}, "
-                        + "budgetSkips={}, rayQueries={}, rayOcclusions={}, avgRayQuery={}us",
+                        + "budgetSkips={}, occlusionQueries={}, occlusionResults={}, avgOcclusionQuery={}us",
                 frames, candidateCalls, candidateOcclusions, averageCullerMicros,
                 maximumCullerNanos / 1_000L, cacheHits, cacheOcclusionHits, budgetSkips,
-                rayQueries, rayOcclusions, averageQueryMicros);
+                occlusionQueries, occlusionResults, averageQueryMicros);
 
         frames = 0L;
         candidateCalls = 0L;
@@ -97,8 +97,8 @@ public final class EntityOcclusionDiagnostics {
         cacheHits = 0L;
         cacheOcclusionHits = 0L;
         budgetSkips = 0L;
-        rayQueries = 0L;
-        rayOcclusions = 0L;
-        rayQueryNanos = 0L;
+        occlusionQueries = 0L;
+        occlusionResults = 0L;
+        occlusionQueryNanos = 0L;
     }
 }
