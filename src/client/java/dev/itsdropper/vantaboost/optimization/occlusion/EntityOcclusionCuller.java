@@ -50,6 +50,7 @@ public final class EntityOcclusionCuller {
                 || entity.isPassenger() || entity.isVehicle() || !entity.onGround()
                 || (entity instanceof net.minecraft.world.entity.Mob mob && mob.isLeashed())
                 || entity instanceof net.minecraft.world.entity.player.Player
+                || !entity.getClass().getName().startsWith("net.minecraft.world.entity.")
                 || entity == client.player
                 || renderBounds == null || cameraPosition == null) {
             return false;
