@@ -3,8 +3,8 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
 import java.lang.reflect.Method;
 
 /**
- * Reflection policy for renderer methods that accept Minecraft render-state
- * types. Called through ClassValue so method inspection happens once per class.
+ * Reflection policy for renderer methods with one typed parameter. Called through
+ * ClassValue so method inspection happens once per renderer class.
  */
 final class RendererOverridePolicy {
     private RendererOverridePolicy() {
