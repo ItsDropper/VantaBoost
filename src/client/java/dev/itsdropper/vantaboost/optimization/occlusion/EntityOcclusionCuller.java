@@ -420,6 +420,12 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
+        if (EntityOcclusionDiagnostics.ENABLED) {
+            long width = (long) FACE_CELL_RANGE[1] - FACE_CELL_RANGE[0] + 1L;
+            long height = (long) FACE_CELL_RANGE[3] - FACE_CELL_RANGE[2] + 1L;
+            EntityOcclusionDiagnostics.recordFaceCellsPlanned((int) (width * height));
+        }
+
         int fixedBlockCoordinate = axis == 0 ? hitBlock.getX()
                 : axis == 1 ? hitBlock.getY() : hitBlock.getZ();
         BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
