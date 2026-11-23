@@ -45,16 +45,16 @@ class OcclusionSamplingTest {
     @Test
     void supportsAllThreeFaceAxesAndBothCameraSides() {
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
-                0.25, 2, 0.25, 0.75, 3, 0.75,
-                0.5, -2, 0.5,
+                4.25, 2, -1.75, 4.75, 3, -1.25,
+                4.5, -2, -1.5,
                 1, -1, 0,
-                0, 1, 0, 1));
+                4, 5, -2, -1));
 
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
-                0.25, 0.25, 2, 0.75, 0.75, 3,
-                0.5, 0.5, -2,
+                4.25, -1.75, 2, 4.75, -1.25, 3,
+                4.5, -1.5, -2,
                 2, -1, 0,
-                0, 1, 0, 1));
+                4, 5, -2, -1));
 
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
                 -3, 0.25, 0.25, -2, 0.75, 0.75,
@@ -63,16 +63,16 @@ class OcclusionSamplingTest {
                 0, 1, 0, 1));
 
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
-                0.25, -3, 0.25, 0.75, -2, 0.75,
-                0.5, 5, 0.5,
+                4.25, -3, -1.75, 4.75, -2, -1.25,
+                4.5, 5, -1.5,
                 1, 1, 1,
-                0, 1, 0, 1));
+                4, 5, -2, -1));
 
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
-                0.25, 0.25, -3, 0.75, 0.75, -2,
-                0.5, 0.5, 5,
+                4.25, -1.75, -3, 4.75, -1.25, -2,
+                4.5, -1.5, 5,
                 2, 1, 1,
-                0, 1, 0, 1));
+                4, 5, -2, -1));
     }
 
     @Test
