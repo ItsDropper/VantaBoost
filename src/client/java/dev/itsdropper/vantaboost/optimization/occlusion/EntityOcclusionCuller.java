@@ -28,7 +28,8 @@ import java.util.WeakHashMap;
  * <p>World access stays on the client thread. Vanilla entities with vanilla
  * renderers are considered only when previous-to-current interpolation can be
  * enclosed by a bounded expansion of the vanilla culling AABB, and renderers
- * using custom shadow radii, shadow strengths, or render offsets are excluded.
+ * using custom culling bounds, shadow radii, shadow strengths, or render offsets
+ * are excluded unless the vanilla LivingEntityRenderer bounds are used.
  * A cached result is reused only while the Frustum origin and conservative bounds
  * are unchanged; block and chunk
  * mutations advance a world revision. Query work is bounded per client tick,
@@ -41,6 +42,8 @@ public final class EntityOcclusionCuller {
     private static final double MAX_INTERPOLATION_PADDING = 1.5;
     private static final int MAX_CACHE_ENTRIES = 16384;
     private static final int MAX_FACE_CELLS = 64;
+    // The culler is client-thread-only; reusable scratch arrays avoid hot-path
+    // allocations while projecting and enumerating the candidate wall plane.
     private static final double[] PROJECTED_FACE_BOUNDS = new double[4];
     private static final int[] FACE_CELL_RANGE = new int[4];
     private static final boolean ENABLED =
