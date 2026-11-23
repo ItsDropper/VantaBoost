@@ -1,6 +1,8 @@
 package dev.itsdropper.vantaboost.mixin;
 
 import dev.itsdropper.vantaboost.optimization.occlusion.EntityOcclusionCuller;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -64,11 +66,27 @@ public abstract class EntityRendererOcclusionMixin {
             return vanillaVisible;
         }
 
-        // The extracted name-tag attachment can extend beyond the entity AABB.
-        // Ask the actual renderer (including LivingEntityRenderer team rules)
-        // whether it will attach a label before allowing occlusion to skip it.
-        if (entityRenderDispatcher.camera == null
-                || this.shouldShowName(entity, entityRenderDispatcher.distanceToSqr(entity))) {
+        // shouldShowName is overloaded by LivingEntityRenderer and MobRenderer;
+        // calling the Entity-typed base overload would miss those name-tag rules.
+        if (entityRenderDispatcher.camera == null) {
+            return vanillaVisible;
+        }
+
+        double distanceToCameraSq = entityRenderDispatcher.distanceToSqr(entity);
+        boolean rendererShowsName;
+        if (entity instanceof Mob mob
+                && (Object) this instanceof MobRendererNameTagInvoker mobInvoker) {
+            rendererShowsName = mobInvoker.vantaboost$invokeShouldShowName(
+                    mob, distanceToCameraSq);
+        } else if (entity instanceof LivingEntity livingEntity
+                && (Object) this instanceof LivingEntityRendererNameTagInvoker livingInvoker) {
+            rendererShowsName = livingInvoker.vantaboost$invokeShouldShowName(
+                    livingEntity, distanceToCameraSq);
+        } else {
+            rendererShowsName = this.shouldShowName(entity, distanceToCameraSq);
+        }
+
+        if (rendererShowsName) {
             return vanillaVisible;
         }
 
