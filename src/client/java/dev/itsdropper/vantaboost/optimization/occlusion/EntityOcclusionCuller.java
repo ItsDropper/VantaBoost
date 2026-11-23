@@ -35,7 +35,6 @@ public final class EntityOcclusionCuller {
     private static final int QUERY_ID_BUCKETS = 1024;
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_INTERPOLATION_PADDING = 1.5;
-    private static final double SHADOW_DROP_PADDING = 1.0;
     private static final int MAX_CACHE_ENTRIES = 16384;
     private static final boolean ENABLED =
             !Boolean.getBoolean("vantaboost.disableEntityOcclusion");
@@ -55,6 +54,25 @@ public final class EntityOcclusionCuller {
                  type = type.getSuperclass()) {
                 try {
                     type.getDeclaredMethod("getRenderOffset", EntityRenderState.class);
+                    return true;
+                } catch (NoSuchMethodException ignored) {
+                    // Continue through the renderer's superclass chain.
+                } catch (SecurityException ignored) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_STRENGTH = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            for (Class<?> type = rendererType;
+                 type != null && type != EntityRenderer.class;
+                 type = type.getSuperclass()) {
+                try {
+                    type.getDeclaredMethod("getShadowStrength", EntityRenderState.class);
                     return true;
                 } catch (NoSuchMethodException ignored) {
                     // Continue through the renderer's superclass chain.
@@ -97,7 +115,7 @@ public final class EntityOcclusionCuller {
     public static boolean shouldCull(
             Entity entity, AABB renderBounds,
             double cameraX, double cameraY, double cameraZ,
-            double shadowRadius, Class<?> rendererType
+            double shadowRadius, double shadowStrength, Class<?> rendererType
     ) {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
@@ -135,7 +153,9 @@ public final class EntityOcclusionCuller {
         }
 
         if (!Double.isFinite(shadowRadius) || shadowRadius < 0.0
+                || !Double.isFinite(shadowStrength)
                 || HAS_CUSTOM_SHADOW_RADIUS.get(rendererType)
+                || HAS_CUSTOM_SHADOW_STRENGTH.get(rendererType)
                 // Dispatcher applies this offset after entity extraction; vanilla's
                 // culling AABB does not include arbitrary renderer-specific offsets.
                 || HAS_CUSTOM_RENDER_OFFSET.get(rendererType)
@@ -158,13 +178,34 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        double minX = renderBounds.minX - shadowRadius - motionX;
-        double minY = renderBounds.minY
-                - (shadowRadius > 0.0 ? SHADOW_DROP_PADDING : 0.0) - motionY;
-        double minZ = renderBounds.minZ - shadowRadius - motionZ;
-        double maxX = renderBounds.maxX + shadowRadius + motionX;
-        double maxY = renderBounds.maxY + motionY;
-        double maxZ = renderBounds.maxZ + shadowRadius + motionZ;
+        // Vanilla extracts shadows from floored block coordinates. Their
+        // footprint can extend one full block beyond the radius, and their
+        // vertical depth depends on getShadowStrength and getShadowRadius.
+        // Union that complete shadow envelope with the interpolated entity AABB.
+        double shadowHorizontalPadding = OcclusionShadowBounds.horizontalPadding(shadowRadius);
+        double shadowDropPadding = OcclusionShadowBounds.verticalDropPadding(
+                shadowRadius, shadowStrength);
+        double shadowRisePadding = OcclusionShadowBounds.verticalRisePadding(shadowRadius);
+
+        double previousX = Math.min(entity.xOld, entity.getX());
+        double previousY = Math.min(entity.yOld, entity.getY());
+        double previousZ = Math.min(entity.zOld, entity.getZ());
+        double currentX = Math.max(entity.xOld, entity.getX());
+        double currentY = Math.max(entity.yOld, entity.getY());
+        double currentZ = Math.max(entity.zOld, entity.getZ());
+
+        double minX = Math.min(renderBounds.minX - motionX,
+                previousX - shadowHorizontalPadding);
+        double minY = Math.min(renderBounds.minY - motionY,
+                previousY - shadowDropPadding);
+        double minZ = Math.min(renderBounds.minZ - motionZ,
+                previousZ - shadowHorizontalPadding);
+        double maxX = Math.max(renderBounds.maxX + motionX,
+                currentX + shadowHorizontalPadding);
+        double maxY = Math.max(renderBounds.maxY + motionY,
+                currentY + shadowRisePadding);
+        double maxZ = Math.max(renderBounds.maxZ + motionZ,
+                currentZ + shadowHorizontalPadding);
 
         double sizeX = maxX - minX;
         double sizeY = maxY - minY;
