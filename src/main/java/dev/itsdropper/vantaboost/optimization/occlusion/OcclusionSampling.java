@@ -65,6 +65,9 @@ public final class OcclusionSampling {
             return false;
         }
 
+        int uAxis = axis == 0 ? 1 : 0;
+        int vAxis = axis == 2 ? 1 : 2;
+
         // Every projected corner must land strictly inside the opaque face.
         for (int corner = 0; corner < 8; corner++) {
             double x = (corner & 1) == 0 ? minX : maxX;
@@ -77,10 +80,10 @@ public final class OcclusionSampling {
                 return false;
             }
 
-            double cameraU = coordinate(cameraX, cameraY, cameraZ, (axis + 1) % 3);
-            double cameraV = coordinate(cameraX, cameraY, cameraZ, (axis + 2) % 3);
-            double targetU = coordinate(x, y, z, (axis + 1) % 3);
-            double targetV = coordinate(x, y, z, (axis + 2) % 3);
+            double cameraU = coordinate(cameraX, cameraY, cameraZ, uAxis);
+            double cameraV = coordinate(cameraX, cameraY, cameraZ, vAxis);
+            double targetU = coordinate(x, y, z, uAxis);
+            double targetV = coordinate(x, y, z, vAxis);
             double projectedU = cameraU + (targetU - cameraU) * t;
             double projectedV = cameraV + (targetV - cameraV) * t;
 
