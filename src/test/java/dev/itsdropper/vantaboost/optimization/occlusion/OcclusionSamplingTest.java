@@ -259,6 +259,49 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void projectedCornerRectangleContainsRandomInteriorProjections() {
+        Random random = new Random(0x51A7E);
+        double[][] cases = {
+                {2, 0.25, 0.25, 3, 2.75, 0.75, -2, 1.5, 0.5, 0, -1, 0},
+                {2, 0.25, 0.25, 3, 2.75, 0.75, 5, 1.5, 0.5, 0, 1, 4},
+                {0.25, 2, 0.25, 2.75, 3, 0.75, 1.5, -2, 0.5, 1, -1, 0},
+                {0.25, 0.25, 2, 2.75, 0.75, 3, 1.5, 0.5, -2, 2, -1, 0}
+        };
+
+        for (double[] testCase : cases) {
+            double[] projectedBounds = new double[4];
+            int axis = (int) testCase[9];
+            assertTrue(OcclusionSampling.projectAabbOntoPlane(
+                    testCase[0], testCase[1], testCase[2],
+                    testCase[3], testCase[4], testCase[5],
+                    testCase[6], testCase[7], testCase[8],
+                    axis, (int) testCase[10], testCase[11], projectedBounds));
+
+            int uAxis = axis == 0 ? 1 : 0;
+            int vAxis = axis == 2 ? 1 : 2;
+            for (int sample = 0; sample < 2_000; sample++) {
+                double x = between(random, testCase[0], testCase[3]);
+                double y = between(random, testCase[1], testCase[4]);
+                double z = between(random, testCase[2], testCase[5]);
+                double cameraAxis = coordinate(testCase[6], testCase[7], testCase[8], axis);
+                double targetAxis = coordinate(x, y, z, axis);
+                double t = (testCase[11] - cameraAxis) / (targetAxis - cameraAxis);
+                double projectedU = coordinate(testCase[6], testCase[7], testCase[8], uAxis)
+                        + (coordinate(x, y, z, uAxis)
+                        - coordinate(testCase[6], testCase[7], testCase[8], uAxis)) * t;
+                double projectedV = coordinate(testCase[6], testCase[7], testCase[8], vAxis)
+                        + (coordinate(x, y, z, vAxis)
+                        - coordinate(testCase[6], testCase[7], testCase[8], vAxis)) * t;
+
+                assertTrue(projectedU >= projectedBounds[0] - 1.0E-10);
+                assertTrue(projectedU <= projectedBounds[1] + 1.0E-10);
+                assertTrue(projectedV >= projectedBounds[2] - 1.0E-10);
+                assertTrue(projectedV <= projectedBounds[3] + 1.0E-10);
+            }
+        }
+    }
+
+    @Test
     void rejectsProjectedFaceCoverageWithHolesOrExcessiveWorkBounds() {
         int[] cells = new int[4];
         assertFalse(OcclusionSampling.getFaceCellRange(
