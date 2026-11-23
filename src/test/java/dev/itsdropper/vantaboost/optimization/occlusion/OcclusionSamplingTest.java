@@ -226,6 +226,39 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void projectsAdjacentFaceCoverageAcrossEveryAxisAndCameraSide() {
+        double[] projected = new double[4];
+        int[] cells = new int[4];
+
+        assertTrue(OcclusionSampling.projectAabbOntoPlane(
+                0.25, 2.0, 0.25, 2.75, 3.0, 0.75,
+                1.5, -2.0, 0.5, 1, -1, 0.0, projected));
+        assertTrue(OcclusionSampling.getFaceCellRange(projected, cells, 64));
+        assertEquals(0, cells[0]);
+        assertEquals(2, cells[1]);
+        assertEquals(0, cells[2]);
+        assertEquals(0, cells[3]);
+
+        assertTrue(OcclusionSampling.projectAabbOntoPlane(
+                0.25, 0.25, 2.0, 2.75, 0.75, 3.0,
+                1.5, 0.5, -2.0, 2, -1, 0.0, projected));
+        assertTrue(OcclusionSampling.getFaceCellRange(projected, cells, 64));
+        assertEquals(0, cells[0]);
+        assertEquals(2, cells[1]);
+        assertEquals(0, cells[2]);
+        assertEquals(0, cells[3]);
+
+        assertTrue(OcclusionSampling.projectAabbOntoPlane(
+                2.0, 0.25, 0.25, 3.0, 2.75, 0.75,
+                5.0, 1.5, 0.5, 0, 1, 4.0, projected));
+        assertTrue(OcclusionSampling.getFaceCellRange(projected, cells, 64));
+        assertEquals(0, cells[0]);
+        assertEquals(2, cells[1]);
+        assertEquals(0, cells[2]);
+        assertEquals(0, cells[3]);
+    }
+
+    @Test
     void rejectsProjectedFaceCoverageWithHolesOrExcessiveWorkBounds() {
         int[] cells = new int[4];
         assertFalse(OcclusionSampling.getFaceCellRange(
