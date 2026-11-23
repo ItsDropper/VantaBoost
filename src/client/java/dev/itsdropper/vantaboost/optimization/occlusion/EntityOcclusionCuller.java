@@ -57,82 +57,54 @@ public final class EntityOcclusionCuller {
                     || FabricLoader.getInstance().isModLoaded("vulkanmod")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
                     || FabricLoader.getInstance().isModLoaded("entity_model_features");
-    private static final ClassValue<Boolean> HAS_CUSTOM_LIVING_SCALE = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            return LivingEntityRenderer.class.isAssignableFrom(rendererType)
-                    && RendererOverridePolicy.declaresMethodWithFirstParameter(
-                    rendererType, LivingEntityRenderer.class, "scale", EntityRenderState.class);
+    private record RendererEligibility(
+            boolean customNameTagPolicy,
+            boolean customCullingBounds,
+            boolean customSubmit,
+            boolean customLivingScale,
+            boolean customLivingRotations,
+            boolean customRenderOffset,
+            boolean customShadowStrength,
+            boolean customShadowRadius
+    ) {
+        private boolean isSafe() {
+            return !customNameTagPolicy && !customCullingBounds && !customSubmit
+                    && !customLivingScale && !customLivingRotations
+                    && !customRenderOffset && !customShadowStrength && !customShadowRadius;
         }
-    };
+    }
 
-    private static final ClassValue<Boolean> HAS_CUSTOM_LIVING_ROTATIONS = new ClassValue<>() {
+    // One cached lookup per renderer class keeps repeated eligibility checks
+    // out of the per-entity hot path. Reflection is performed only once/class.
+    private static final ClassValue<RendererEligibility> RENDERER_ELIGIBILITY = new ClassValue<>() {
         @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            return LivingEntityRenderer.class.isAssignableFrom(rendererType)
-                    && RendererOverridePolicy.declaresMethodWithFirstParameter(
-                    rendererType, LivingEntityRenderer.class, "setupRotations", EntityRenderState.class);
-        }
-    };
+        protected RendererEligibility computeValue(Class<?> rendererType) {
+            boolean livingRenderer = LivingEntityRenderer.class.isAssignableFrom(rendererType);
+            boolean mobRenderer = MobRenderer.class.isAssignableFrom(rendererType);
+            Class<?> livingBase = livingRenderer ? LivingEntityRenderer.class : EntityRenderer.class;
+            Class<?> nameTagBase = mobRenderer ? MobRenderer.class
+                    : livingRenderer ? LivingEntityRenderer.class : EntityRenderer.class;
+            Class<?> shadowRadiusBase = mobRenderer ? MobRenderer.class
+                    : livingRenderer ? LivingEntityRenderer.class : EntityRenderer.class;
 
-    private static final ClassValue<Boolean> HAS_CUSTOM_NAME_TAG_POLICY = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            Class<?> stopBefore = MobRenderer.class.isAssignableFrom(rendererType)
-                    ? MobRenderer.class
-                    : LivingEntityRenderer.class.isAssignableFrom(rendererType)
-                    ? LivingEntityRenderer.class : EntityRenderer.class;
-            return RendererOverridePolicy.declaresSingleArgumentMethod(
-                    rendererType, stopBefore, "shouldShowName", Entity.class);
-        }
-    };
-
-    private static final ClassValue<Boolean> HAS_CUSTOM_SUBMIT = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            Class<?> stopBefore = LivingEntityRenderer.class.isAssignableFrom(rendererType)
-                    ? LivingEntityRenderer.class : EntityRenderer.class;
-            return RendererOverridePolicy.declaresMethodWithFirstParameter(
-                    rendererType, stopBefore, "submit", EntityRenderState.class);
-        }
-    };
-
-    private static final ClassValue<Boolean> HAS_CUSTOM_CULLING_BOUNDS = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            Class<?> stopBefore = LivingEntityRenderer.class.isAssignableFrom(rendererType)
-                    ? LivingEntityRenderer.class : EntityRenderer.class;
-            return RendererOverridePolicy.declaresSingleArgumentMethod(
-                    rendererType, stopBefore, "getBoundingBoxForCulling", Entity.class);
-        }
-    };
-
-    private static final ClassValue<Boolean> HAS_CUSTOM_RENDER_OFFSET = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            return RendererOverridePolicy.declaresStateMethod(
-                    rendererType, EntityRenderer.class, "getRenderOffset", EntityRenderState.class);
-        }
-    };
-
-    private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_STRENGTH = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            return RendererOverridePolicy.declaresStateMethod(
-                    rendererType, EntityRenderer.class, "getShadowStrength", EntityRenderState.class);
-        }
-    };
-
-    private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_RADIUS = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> rendererType) {
-            Class<?> stopBefore = MobRenderer.class.isAssignableFrom(rendererType)
-                    ? MobRenderer.class
-                    : LivingEntityRenderer.class.isAssignableFrom(rendererType)
-                    ? LivingEntityRenderer.class
-                    : EntityRenderer.class;
-            return RendererOverridePolicy.declaresStateMethod(
-                    rendererType, stopBefore, "getShadowRadius", EntityRenderState.class);
+            return new RendererEligibility(
+                    RendererOverridePolicy.declaresSingleArgumentMethod(
+                            rendererType, nameTagBase, "shouldShowName", Entity.class),
+                    RendererOverridePolicy.declaresSingleArgumentMethod(
+                            rendererType, livingBase, "getBoundingBoxForCulling", Entity.class),
+                    RendererOverridePolicy.declaresMethodWithFirstParameter(
+                            rendererType, livingBase, "submit", EntityRenderState.class),
+                    livingRenderer && RendererOverridePolicy.declaresMethodWithFirstParameter(
+                            rendererType, LivingEntityRenderer.class, "scale", EntityRenderState.class),
+                    livingRenderer && RendererOverridePolicy.declaresMethodWithFirstParameter(
+                            rendererType, LivingEntityRenderer.class, "setupRotations", EntityRenderState.class),
+                    RendererOverridePolicy.declaresStateMethod(
+                            rendererType, EntityRenderer.class, "getRenderOffset", EntityRenderState.class),
+                    RendererOverridePolicy.declaresStateMethod(
+                            rendererType, EntityRenderer.class, "getShadowStrength", EntityRenderState.class),
+                    RendererOverridePolicy.declaresStateMethod(
+                            rendererType, shadowRadiusBase, "getShadowRadius", EntityRenderState.class)
+            );
         }
     };
 
@@ -209,16 +181,9 @@ public final class EntityOcclusionCuller {
 
         if (!Double.isFinite(shadowRadius) || shadowRadius < 0.0
                 || !Double.isFinite(shadowStrength)
-                || HAS_CUSTOM_SHADOW_RADIUS.get(rendererType)
-                || HAS_CUSTOM_SHADOW_STRENGTH.get(rendererType)
-                || HAS_CUSTOM_CULLING_BOUNDS.get(rendererType)
-                || HAS_CUSTOM_SUBMIT.get(rendererType)
-                || HAS_CUSTOM_NAME_TAG_POLICY.get(rendererType)
-                || HAS_CUSTOM_LIVING_SCALE.get(rendererType)
-                || HAS_CUSTOM_LIVING_ROTATIONS.get(rendererType)
+                || !RENDERER_ELIGIBILITY.get(rendererType).isSafe()
                 // Dispatcher applies this offset after entity extraction; vanilla's
                 // culling AABB does not include arbitrary renderer-specific offsets.
-                || HAS_CUSTOM_RENDER_OFFSET.get(rendererType)
                 || !Double.isFinite(renderBounds.minX) || !Double.isFinite(renderBounds.minY)
                 || !Double.isFinite(renderBounds.minZ) || !Double.isFinite(renderBounds.maxX)
                 || !Double.isFinite(renderBounds.maxY) || !Double.isFinite(renderBounds.maxZ)
