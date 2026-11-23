@@ -49,14 +49,14 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
 
         boolean vanillaVisible = frustum.isVisible(bounds);
         if (!vanillaVisible
-                || entityRenderDispatcher.camera == null
                 || entity == entityRenderDispatcher.crosshairPickEntity
                 || !this.getClass().getName().startsWith("net.minecraft.client.renderer.entity.")) {
             return vanillaVisible;
         }
 
         return !EntityOcclusionCuller.shouldCull(
-                entity, bounds, entityRenderDispatcher.camera.position(),
+                entity, bounds,
+                frustum.getCamX(), frustum.getCamY(), frustum.getCamZ(),
                 shadowRadius, this.getClass());
     }
 }
