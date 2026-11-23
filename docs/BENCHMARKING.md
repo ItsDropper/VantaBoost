@@ -53,6 +53,45 @@ Run the same fixed scene twice: once with the disable property and once without 
 
 **Important:** diagnostic mode calls `System.nanoTime()` for each candidate and therefore perturbs the hot path. Use it to understand query/cache behavior and approximate culler cost, not for final FPS or frame-time acceptance. For final performance comparisons, repeat the same runs with `vantaboost.profileEntityOcclusion` disabled and capture frame times/JFR separately.
 
+## Block-entity occlusion diagnostic mode
+
+Enable opt-in counters with:
+
+```text
+-Dvantaboost.profileBlockEntityOcclusion=true
+```
+
+The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time.
+
+To compare entry-point overhead with the optimization disabled, add:
+
+```text
+-Dvantaboost.disableBlockEntityOcclusion=true
+```
+
+Keep profiling enabled for both diagnostic runs. For final frame-time comparisons, disable profiling and capture JFR/frame-time distributions separately; per-candidate nanoTime calls perturb the hot path.
+
+## Block-entity occlusion correctness gate
+
+Validate every currently allowlisted renderer in a repeatable dense-build world:
+
+- Single and double chests in every facing/orientation; open and closing lid animation must remain fully visible whenever any part is exposed.
+- Beds in both orientations and both block positions.
+- Shulker boxes facing all six directions, including opening/closing animation.
+- Decorated pots during wobble animation.
+- Bells during swing animation.
+- Enchanting-table book animation.
+- Lectern book state and interaction.
+- Copper-golem statues in each pose/orientation.
+- Each object fully behind a continuous opaque wall, partially exposed at wall edges, above/below a wall, and behind a one-block gap. Any visible portion must remain rendered.
+- Remove or replace an occluding block while the block entity remains stationary; it must reappear immediately.
+- Chunk unload/reload, dimension changes, and world replacement while positive cache entries exist.
+- Camera movement, spectator camera, and third-person camera transitions.
+- Confirm globally rendered block entities, off-screen renderers, modded renderers, and unsupported vanilla renderers are never culled.
+- Repeat with Iris inactive, Iris shader pack active, Canvas, and Entity Culling. Unsupported configurations must fail open or disable the optimization as documented.
+
+The diagnostic report must show candidates, cache behavior, ray queries, and positive occlusion results in the dense scene. Then repeat identical benchmark runs with profiling disabled. Do not accept the optimization unless no visible block entity is ever hidden and frame-time improvements exceed run-to-run variance without regressions in empty-world or ordinary gameplay controls.
+
 ## Entity occlusion correctness gate
 
 Before treating the prototype as ready for performance comparison, validate these cases in a repeatable world:
