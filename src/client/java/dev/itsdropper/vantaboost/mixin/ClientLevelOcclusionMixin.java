@@ -29,6 +29,35 @@ public abstract class ClientLevelOcclusionMixin {
     }
 
     @Inject(
+            method = "setServerVerifiedBlockState(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)V",
+            at = @At("TAIL")
+    )
+    private void vantaboost$invalidateAfterVerifiedBlockState(
+            BlockPos pos, BlockState state, int flags, CallbackInfo ci
+    ) {
+        EntityOcclusionCuller.invalidateWorld();
+    }
+
+    @Inject(
+            method = "syncBlockState(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/phys/Vec3;)V",
+            at = @At("TAIL")
+    )
+    private void vantaboost$invalidateAfterPredictedBlockState(
+            BlockPos pos, BlockState state, net.minecraft.world.phys.Vec3 playerPosition,
+            CallbackInfo ci
+    ) {
+        EntityOcclusionCuller.invalidateWorld();
+    }
+
+    @Inject(
+            method = "onSectionBecomingNonEmpty(J)V",
+            at = @At("TAIL")
+    )
+    private void vantaboost$invalidateAfterSectionActivation(long sectionPos, CallbackInfo ci) {
+        EntityOcclusionCuller.invalidateWorld();
+    }
+
+    @Inject(
             method = "onChunkLoaded(Lnet/minecraft/world/level/ChunkPos;)V",
             at = @At("TAIL")
     )
