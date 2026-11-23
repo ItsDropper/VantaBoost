@@ -25,6 +25,8 @@ jobs:
           gradle-version: "9.2.1"
       - name: Build and test
         run: gradle --no-daemon clean build
+      - name: Smoke-test client mixin application
+        run: xvfb-run -a timeout 300s gradle --no-daemon runClient -PvantaboostCiSmoke=true
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         if: success()
