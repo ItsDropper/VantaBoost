@@ -30,7 +30,8 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
             method = "shouldRender(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/culling/Frustum;isVisible(Lnet/minecraft/world/phys/AABB;)Z"
+                    target = "Lnet/minecraft/client/renderer/culling/Frustum;isVisible(Lnet/minecraft/world/phys/AABB;)Z",
+                    ordinal = 0
             )
     )
     private boolean vantaboost$applyEntityOcclusion(
@@ -48,12 +49,14 @@ public abstract class EntityRendererOcclusionMixin<T extends Entity> {
 
         boolean vanillaVisible = frustum.isVisible(bounds);
         if (!vanillaVisible
+                || entityRenderDispatcher.camera == null
                 || entity == entityRenderDispatcher.crosshairPickEntity
                 || !this.getClass().getName().startsWith("net.minecraft.client.renderer.entity.")) {
             return vanillaVisible;
         }
 
         return !EntityOcclusionCuller.shouldCull(
-                entity, bounds, entityRenderDispatcher.camera.getPosition(), shadowRadius);
+                entity, bounds, entityRenderDispatcher.camera.position(),
+                shadowRadius, this.getClass());
     }
 }
