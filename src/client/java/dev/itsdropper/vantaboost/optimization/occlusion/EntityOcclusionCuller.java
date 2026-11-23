@@ -311,14 +311,14 @@ public final class EntityOcclusionCuller {
                 axis, normalStep, plane, minU, maxU, minV, maxV);
     }
 
-    private record CacheEntry(
+    static record CacheEntry(
             long worldRevision,
             double cameraX, double cameraY, double cameraZ,
             double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ,
             boolean occluded
     ) {
-        private boolean matches(
+        boolean matches(
                 long revision, double cameraX, double cameraY, double cameraZ,
                 double minX, double minY, double minZ,
                 double maxX, double maxY, double maxZ
