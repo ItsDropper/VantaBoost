@@ -104,14 +104,12 @@ public final class EntityOcclusionCuller {
         // current coordinates. Expand the vanilla culling AABB by the complete
         // per-axis displacement so every interpolated position is enclosed.
         // Large teleports/knockback fail open rather than creating huge bounds.
-        double motionX = Math.abs(entity.xOld - entity.getX());
-        double motionY = Math.abs(entity.yOld - entity.getY());
-        double motionZ = Math.abs(entity.zOld - entity.getZ());
-        if (!Double.isFinite(motionX) || !Double.isFinite(motionY)
-                || !Double.isFinite(motionZ)
-                || motionX > MAX_INTERPOLATION_PADDING
-                || motionY > MAX_INTERPOLATION_PADDING
-                || motionZ > MAX_INTERPOLATION_PADDING) {
+        double motionX = OcclusionMotion.interpolationPadding(entity.xOld, entity.getX());
+        double motionY = OcclusionMotion.interpolationPadding(entity.yOld, entity.getY());
+        double motionZ = OcclusionMotion.interpolationPadding(entity.zOld, entity.getZ());
+        if (!OcclusionMotion.isWithinLimit(motionX, MAX_INTERPOLATION_PADDING)
+                || !OcclusionMotion.isWithinLimit(motionY, MAX_INTERPOLATION_PADDING)
+                || !OcclusionMotion.isWithinLimit(motionZ, MAX_INTERPOLATION_PADDING)) {
             return false;
         }
 
