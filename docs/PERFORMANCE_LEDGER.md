@@ -102,11 +102,11 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Expected metrics: Fewer block-entity render states, renderer submissions, and GPU work in occluded block-entity-heavy scenes; possible render-thread overhead from raycasts and cache checks.
 - Correctness constraints: Preserve vanilla shouldRender; exclude globally rendered and off-screen renderers; exact vanilla class matches only; fail open for unknown renderers/entities, shader-pack-active Iris, missing camera/world state, budget exhaustion, raycast errors, partial/holed occluders, or any uncertain projection. The three-block envelope is intentionally broad; it must be visually validated for every allowlisted renderer, especially double chests, beds, and animated models.
 - Compatibility risks: Renderer mods can alter block-entity geometry or extraction flow. Canvas and Entity Culling disable this prototype. Iris shader packs cause fail-open. Other renderer combinations still require runtime testing.
-- Implementation commit: ae5abee through 645d12a (main)
+- Implementation commits: ae5abee through a75ec58 (main)
 - Benchmark scenarios and repetitions: Not run. Required: identical dense village/build scene with many visible and wall-occluded block entities, plus empty-world and ordinary gameplay controls; repeat with profiling disabled for final frame-time comparison.
 - Before/after distributions: None
 - Regressions: Unknown
-- Validation evidence: Pure-Java allowlist tests and CI build/client mixin smoke coverage are being added; no in-game visual correctness test or controlled performance measurement exists yet.
+- Validation evidence: JUnit tests cover every allowlisted renderer/entity pair, reject mismatched and modded pairs, reject off-screen/global cases, and verify conservative cache reuse across camera motion. GitHub Actions run [#318](https://github.com/ItsDropper/VantaBoost/actions/runs/45279867488) on commit a75ec58 passed the Gradle build/tests, headless client mixin-application smoke test, and JAR upload. This does not verify in-game visual correctness or performance; no controlled runtime benchmark exists.
 - Rollback condition: Revert/disable if any allowlisted renderer is visibly clipped, if occlusion invalidation is stale, or if the culler overhead exceeds saved extraction/submission time in representative scenes.
 - Decision and rationale: Keep as an experimental implementation disabled by default. Enable manually with -Dvantaboost.enableBlockEntityOcclusion=true; force it off with -Dvantaboost.disableBlockEntityOcclusion=true. Do not claim FPS gains or mark accepted until the visual gate and controlled benchmark pass.
 
