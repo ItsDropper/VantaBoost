@@ -64,13 +64,9 @@ Enable the experimental block-entity culler and its counters with:
 
 The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time.
 
-To run the disabled baseline, retain the enable property and add the explicit override:
+For the disabled baseline, omit the enable property (or add -Dvantaboost.disableBlockEntityOcclusion=true). Capture the same frame-time/JFR metrics with profiling disabled. The disabled path returns before culler timing counters, so diagnostic reports are expected only from the enabled diagnostic run.
 
-```text
--Dvantaboost.disableBlockEntityOcclusion=true
-```
-
-Keep profiling enabled for both diagnostic runs. For final frame-time comparisons, disable profiling and capture JFR/frame-time distributions separately; per-candidate nanoTime calls perturb the hot path.
+For final frame-time comparisons, disable profiling and capture JFR/frame-time distributions separately; per-candidate nanoTime calls perturb the hot path.
 
 ## Block-entity occlusion correctness gate
 
