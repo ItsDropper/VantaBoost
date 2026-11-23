@@ -41,7 +41,7 @@ The experimental culler exposes opt-in counters. Start Minecraft with:
 -Dvantaboost.profileEntityOcclusion=true
 ```
 
-It emits a summary every 300 main entity-extraction frames. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, occlusion-query count, occlusion results, and average full occlusion-query time.
+It emits a summary every 300 main entity-extraction frames. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time.
 
 To measure the mixin/culler call overhead with the optimization disabled, add:
 
