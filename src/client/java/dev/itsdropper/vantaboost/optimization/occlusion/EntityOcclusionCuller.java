@@ -3,6 +3,8 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,57 +52,29 @@ public final class EntityOcclusionCuller {
     private static final ClassValue<Boolean> HAS_CUSTOM_RENDER_OFFSET = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
-            for (Class<?> type = rendererType;
-                 type != null && type != EntityRenderer.class;
-                 type = type.getSuperclass()) {
-                try {
-                    type.getDeclaredMethod("getRenderOffset", EntityRenderState.class);
-                    return true;
-                } catch (NoSuchMethodException ignored) {
-                    // Continue through the renderer's superclass chain.
-                } catch (SecurityException ignored) {
-                    return true;
-                }
-            }
-            return false;
+            return RendererOverridePolicy.declaresStateMethod(
+                    rendererType, EntityRenderer.class, "getRenderOffset", EntityRenderState.class);
         }
     };
 
     private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_STRENGTH = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
-            for (Class<?> type = rendererType;
-                 type != null && type != EntityRenderer.class;
-                 type = type.getSuperclass()) {
-                try {
-                    type.getDeclaredMethod("getShadowStrength", EntityRenderState.class);
-                    return true;
-                } catch (NoSuchMethodException ignored) {
-                    // Continue through the renderer's superclass chain.
-                } catch (SecurityException ignored) {
-                    return true;
-                }
-            }
-            return false;
+            return RendererOverridePolicy.declaresStateMethod(
+                    rendererType, EntityRenderer.class, "getShadowStrength", EntityRenderState.class);
         }
     };
 
     private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_RADIUS = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
-            for (Class<?> type = rendererType;
-                 type != null && type != EntityRenderer.class;
-                 type = type.getSuperclass()) {
-                try {
-                    type.getDeclaredMethod("getShadowRadius", EntityRenderState.class);
-                    return true;
-                } catch (NoSuchMethodException ignored) {
-                    // Continue through the renderer's superclass chain.
-                } catch (SecurityException ignored) {
-                    return true;
-                }
-            }
-            return false;
+            Class<?> stopBefore = MobRenderer.class.isAssignableFrom(rendererType)
+                    ? MobRenderer.class
+                    : LivingEntityRenderer.class.isAssignableFrom(rendererType)
+                    ? LivingEntityRenderer.class
+                    : EntityRenderer.class;
+            return RendererOverridePolicy.declaresStateMethod(
+                    rendererType, stopBefore, "getShadowRadius", EntityRenderState.class);
         }
     };
 
@@ -168,6 +142,22 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
+        double effectiveShadowRadius = shadowRadius;
+        if (LivingEntityRenderer.class.isAssignableFrom(rendererType)) {
+            if (!(entity instanceof net.minecraft.world.entity.LivingEntity livingEntity)) {
+                return false;
+            }
+
+            effectiveShadowRadius = OcclusionShadowBounds.scaledRadius(
+                    shadowRadius,
+                    livingEntity.getScale(),
+                    livingEntity.getAgeScale(),
+                    MobRenderer.class.isAssignableFrom(rendererType));
+            if (!Double.isFinite(effectiveShadowRadius) || effectiveShadowRadius < 0.0) {
+                return false;
+            }
+        }
+
         // EntityRenderer already inflated this AABB by 0.5 blocks. Extend it
         // using primitive coordinates, avoiding another AABB allocation on
         // the entity-extraction hot path.
@@ -183,10 +173,10 @@ public final class EntityOcclusionCuller {
         // footprint can extend one full block beyond the radius, and their
         // vertical depth depends on getShadowStrength and getShadowRadius.
         // Union that complete shadow envelope with the interpolated entity AABB.
-        double shadowHorizontalPadding = OcclusionShadowBounds.horizontalPadding(shadowRadius);
+        double shadowHorizontalPadding = OcclusionShadowBounds.horizontalPadding(effectiveShadowRadius);
         double shadowDropPadding = OcclusionShadowBounds.verticalDropPadding(
-                shadowRadius, shadowStrength);
-        double shadowRisePadding = OcclusionShadowBounds.verticalRisePadding(shadowRadius);
+                effectiveShadowRadius, shadowStrength);
+        double shadowRisePadding = OcclusionShadowBounds.verticalRisePadding(effectiveShadowRadius);
 
         double previousX = Math.min(entity.xOld, entity.getX());
         double previousY = Math.min(entity.yOld, entity.getY());
