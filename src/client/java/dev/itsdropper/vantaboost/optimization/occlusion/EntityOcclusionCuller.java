@@ -56,6 +56,24 @@ public final class EntityOcclusionCuller {
                     || FabricLoader.getInstance().isModLoaded("vulkanmod")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
                     || FabricLoader.getInstance().isModLoaded("entity_model_features");
+    private static final ClassValue<Boolean> HAS_CUSTOM_LIVING_SCALE = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            return LivingEntityRenderer.class.isAssignableFrom(rendererType)
+                    && RendererOverridePolicy.declaresMethodWithFirstParameter(
+                    rendererType, LivingEntityRenderer.class, "scale", EntityRenderState.class);
+        }
+    };
+
+    private static final ClassValue<Boolean> HAS_CUSTOM_LIVING_ROTATIONS = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            return LivingEntityRenderer.class.isAssignableFrom(rendererType)
+                    && RendererOverridePolicy.declaresMethodWithFirstParameter(
+                    rendererType, LivingEntityRenderer.class, "setupRotations", EntityRenderState.class);
+        }
+    };
+
     private static final ClassValue<Boolean> HAS_CUSTOM_SUBMIT = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
@@ -179,6 +197,8 @@ public final class EntityOcclusionCuller {
                 || HAS_CUSTOM_SHADOW_STRENGTH.get(rendererType)
                 || HAS_CUSTOM_CULLING_BOUNDS.get(rendererType)
                 || HAS_CUSTOM_SUBMIT.get(rendererType)
+                || HAS_CUSTOM_LIVING_SCALE.get(rendererType)
+                || HAS_CUSTOM_LIVING_ROTATIONS.get(rendererType)
                 // Dispatcher applies this offset after entity extraction; vanilla's
                 // culling AABB does not include arbitrary renderer-specific offsets.
                 || HAS_CUSTOM_RENDER_OFFSET.get(rendererType)
