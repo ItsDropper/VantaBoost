@@ -3,6 +3,7 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
@@ -100,12 +101,8 @@ public final class EntityOcclusionCuller {
         }
 
         queriesThisTick++;
-        boolean occluded = OcclusionSampling.isFullyOccluded(
-                bounds.minX, bounds.minY, bounds.minZ,
-                bounds.maxX, bounds.maxY, bounds.maxZ,
-                cameraPosition.x, cameraPosition.y, cameraPosition.z,
-                (x, y, z) -> isBlockedByOpaqueFullBlock(
-                        level, entity, cameraPosition, x, y, z));
+        boolean occluded = isBlockedByOpaqueFullBlock(
+                level, entity, cameraPosition, bounds);
 
         CACHE.put(entity, new CacheEntry(
                 worldRevision,
@@ -145,10 +142,11 @@ public final class EntityOcclusionCuller {
             ClientLevel level,
             Entity entity,
             Vec3 cameraPosition,
-            double targetX,
-            double targetY,
-            double targetZ
+            AABB bounds
     ) {
+        double targetX = (bounds.minX + bounds.maxX) * 0.5;
+        double targetY = (bounds.minY + bounds.maxY) * 0.5;
+        double targetZ = (bounds.minZ + bounds.maxZ) * 0.5;
         Vec3 target = new Vec3(targetX, targetY, targetZ);
         BlockHitResult hit = level.clip(new ClipContext(
                 cameraPosition,
@@ -157,12 +155,36 @@ public final class EntityOcclusionCuller {
                 ClipContext.Fluid.NONE,
                 entity));
 
-        if (hit.getType() != HitResult.Type.BLOCK) {
+        if (hit.getType() != HitResult.Type.BLOCK
+                || !level.getBlockState(hit.getBlockPos()).isSolidRender()) {
             return false;
         }
 
-        BlockPos hitPosition = hit.getBlockPos();
-        return level.getBlockState(hitPosition).isSolidRender();
+        Direction face = hit.getDirection();
+        BlockPos block = hit.getBlockPos();
+        int axis = face.getAxis() == Direction.Axis.X ? 0
+                : face.getAxis() == Direction.Axis.Y ? 1 : 2;
+        int normalStep = axis == 0 ? face.getStepX()
+                : axis == 1 ? face.getStepY() : face.getStepZ();
+
+        double plane = axis == 0 ? block.getX()
+                : axis == 1 ? block.getY() : block.getZ();
+        if (normalStep > 0) {
+            plane += 1.0;
+        }
+
+        double minU = axis == 0 ? block.getY()
+                : block.getX();
+        double maxU = minU + 1.0;
+        double minV = axis == 0 ? block.getZ()
+                : axis == 1 ? block.getZ() : block.getY();
+        double maxV = minV + 1.0;
+
+        return OcclusionSampling.isFullyOccludedByBlockFace(
+                bounds.minX, bounds.minY, bounds.minZ,
+                bounds.maxX, bounds.maxY, bounds.maxZ,
+                cameraPosition.x, cameraPosition.y, cameraPosition.z,
+                axis, normalStep, plane, minU, maxU, minV, maxV);
     }
 
     private record CacheEntry(
