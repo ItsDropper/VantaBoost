@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * CI-only startup probe. It is inert in normal launches and exits after forcing
- * the three optimization target classes through the Mixin transformer.
+ * the optimization targets and renderer name-tag invokers through the Mixin transformer.
  */
 @Mixin(Minecraft.class)
 public abstract class ClientSmokeTestMixin {
@@ -30,8 +30,17 @@ public abstract class ClientSmokeTestMixin {
         ClassLoader classLoader = Minecraft.class.getClassLoader();
         try {
             Class.forName("net.minecraft.client.renderer.entity.EntityRenderer", false, classLoader);
+            Class.forName("net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader);
+            Class.forName("net.minecraft.client.renderer.entity.MobRenderer", false, classLoader);
             Class.forName("net.minecraft.client.multiplayer.ClientLevel", false, classLoader);
             Class.forName("net.minecraft.client.renderer.LevelRenderer", false, classLoader);
+
+            if (!LivingEntityRendererNameTagInvoker.class.isAssignableFrom(
+                    Class.forName("net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader))
+                    || !MobRendererNameTagInvoker.class.isAssignableFrom(
+                    Class.forName("net.minecraft.client.renderer.entity.MobRenderer", false, classLoader))) {
+                throw new IllegalStateException("Renderer name-tag invokers were not applied");
+            }
         } catch (ClassNotFoundException exception) {
             throw new IllegalStateException("Could not load VantaBoost mixin smoke-test targets", exception);
         }
