@@ -55,15 +55,16 @@ Run the same fixed scene twice: once with the disable property and once without 
 
 ## Block-entity occlusion diagnostic mode
 
-Enable opt-in counters with:
+Enable the experimental block-entity culler and its counters with:
 
 ```text
+-Dvantaboost.enableBlockEntityOcclusion=true
 -Dvantaboost.profileBlockEntityOcclusion=true
 ```
 
 The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time.
 
-To compare entry-point overhead with the optimization disabled, add:
+To run the disabled baseline, retain the enable property and add the explicit override:
 
 ```text
 -Dvantaboost.disableBlockEntityOcclusion=true
