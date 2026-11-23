@@ -48,6 +48,7 @@ The optimization runtime does not depend on either UI. The standalone UI does no
       ARCHITECTURE.md
       BENCHMARKING.md
       PERFORMANCE_LEDGER.md
+      RESEARCH.md
     .agent/
       skills/minecraft-performance-engineering/SKILL.md
 
@@ -87,7 +88,6 @@ Do not create a mixin configuration just to reserve a directory. For each future
 
 - Minecraft 1.21.11
 - Fabric Loader 0.18.1
-- Fabric API 0.141.6+1.21.11
 - Fabric Loom 1.14.10
 - Java 21
 - Official Mojang mappings
