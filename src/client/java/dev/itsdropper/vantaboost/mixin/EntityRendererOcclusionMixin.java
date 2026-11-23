@@ -26,6 +26,9 @@ public abstract class EntityRendererOcclusionMixin {
     @Shadow
     protected float shadowRadius;
 
+    @Shadow
+    protected float shadowStrength;
+
     @Redirect(
             method = "shouldRender(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z",
             at = @At(
@@ -61,6 +64,6 @@ public abstract class EntityRendererOcclusionMixin {
         return !EntityOcclusionCuller.shouldCull(
                 entity, bounds,
                 frustum.getCamX(), frustum.getCamY(), frustum.getCamZ(),
-                shadowRadius, this.getClass());
+                shadowRadius, shadowStrength, this.getClass());
     }
 }
