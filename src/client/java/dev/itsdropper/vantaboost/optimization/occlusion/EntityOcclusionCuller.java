@@ -56,7 +56,8 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        if (entity.getDeltaMovement().lengthSqr() > MAX_VELOCITY_SQUARED) {
+        double velocitySquared = entity.getDeltaMovement().lengthSqr();
+        if (!Double.isFinite(velocitySquared) || velocitySquared > MAX_VELOCITY_SQUARED) {
             return false;
         }
 
@@ -111,8 +112,14 @@ public final class EntityOcclusionCuller {
         }
 
         queriesThisTick++;
-        boolean occluded = isBlockedByOpaqueFullBlock(
-                level, entity, cameraPosition, bounds);
+        boolean occluded;
+        try {
+            occluded = isBlockedByOpaqueFullBlock(
+                    level, entity, cameraPosition, bounds);
+        } catch (RuntimeException ignored) {
+            // World/raycast failures are uncertainty. Never hide an entity.
+            occluded = false;
+        }
 
         CACHE.put(entity, new CacheEntry(
                 worldRevision,
