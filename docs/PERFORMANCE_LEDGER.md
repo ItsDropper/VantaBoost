@@ -72,7 +72,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 
 - Status: Implemented — experimental entity-renderer mixin; not performance-accepted
 - Target Minecraft version: 1.21.11
-- Subsystem: Entity/block-entity rendering
+- Subsystem: Entity extraction/rendering
 - Relevant source: Entity Culling `CullTask` and `OcclusionCullingInstance`
 - Profile artifact and commit: None
 - Measured baseline cost: Unknown
@@ -80,7 +80,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Correctness constraints: Fail open on uncertainty, project the complete conservative render AABB through one opaque full-block face, invalidate on camera/bounds/world changes, and preserve shadows, names, fire, glow, leashes, and custom renderers.
 - Compatibility risks: Renderer-specific geometry beyond the reported bounds, block-state opacity semantics, world mutation invalidation, and CPU cost of ray queries.
 - Decision: Keep the prototype narrow. Do not broaden to moving entities, modded renderers, or block entities until runtime visual checks and profiles justify it.
-- Implementation: `EntityRendererOcclusionMixin` injects at the RETURN of official-mapped `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z`. It only considers vanilla-package renderers whose vanilla culling predicate accepted the entity. The cache is render-thread-only and weak-keyed by entity identity.
+- Implementation: `EntityRendererOcclusionMixin` injects at the RETURN of official-mapped `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z`. It only considers vanilla-package entity classes and renderers whose vanilla culling predicate accepted the entity. The cache is client-thread-only and weak-keyed by entity identity.
 - Occlusion proof: one block-collision ray from the camera to the conservative bounds center must hit a block whose `BlockState.isSolidRender()` is true. The hit face must lie between the camera and every AABB corner, and perspective projection of all eight corners onto that face must fall strictly inside the same unit face rectangle. If any condition fails, render normally.
 - Eligibility: stationary, grounded, non-player entities only. Glowing, burning, named, leashed, mounted, passenger, custom-renderer, and renderer-opted-out entities fail open. Renderer shadow radius expands the tested bounds so the ground-shadow footprint is included.
 - Cache invalidation: exact camera and bounds snapshots are part of each entry. ClientLevel block changes, chunk loads, chunk unloads, and world changes invalidate cached visibility. A rotating entity-ID window limits first-time queries to 64 per game tick.
