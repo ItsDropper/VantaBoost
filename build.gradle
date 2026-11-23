@@ -113,3 +113,9 @@ tasks.register("verifyClientMixinConfiguration") {
 tasks.named("check") {
     dependsOn tasks.named("verifyClientMixinConfiguration")
 }
+
+tasks.matching { it.name == "runClient" }.configureEach {
+    if (providers.gradleProperty("vantaboostCiSmoke").isPresent()) {
+        jvmArgs "-Dvantaboost.ciSmoke=true"
+    }
+}
