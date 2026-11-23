@@ -2,9 +2,12 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Leashable;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -29,11 +32,28 @@ public final class EntityOcclusionCuller {
     private static final int QUERY_ID_BUCKETS = 1024;
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_VELOCITY_SQUARED = 1.0E-6;
-    private static final double BOUNDS_PADDING = 0.5;
-    private static final double SHADOW_DROP_PADDING = 2.0;
+    private static final double SHADOW_DROP_PADDING = 1.0;
     private static final int MAX_CACHE_ENTRIES = 4096;
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
+    private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_RADIUS = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> rendererType) {
+            for (Class<?> type = rendererType;
+                 type != null && type != EntityRenderer.class;
+                 type = type.getSuperclass()) {
+                try {
+                    type.getDeclaredMethod("getShadowRadius", EntityRenderState.class);
+                    return true;
+                } catch (NoSuchMethodException ignored) {
+                    // Continue through the renderer's superclass chain.
+                } catch (SecurityException ignored) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
 
     private static WeakReference<ClientLevel> activeLevel = new WeakReference<>(null);
     private static long worldRevision;
@@ -44,15 +64,20 @@ public final class EntityOcclusionCuller {
     }
 
     public static boolean shouldCull(
-            Entity entity, AABB renderBounds, Vec3 cameraPosition, double shadowRadius
+            Entity entity, AABB renderBounds, Vec3 cameraPosition, double shadowRadius,
+            Class<?> rendererType
     ) {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
 
         if (level == null || entity.level() != level || entity.isRemoved()
-                || entity.isCurrentlyGlowing() || entity.isOnFire() || entity.hasCustomName()
+                || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
+                || entity.hasCustomName() || entity.shouldShowName()
                 || entity.isPassenger() || entity.isVehicle() || !entity.onGround()
-                || (entity instanceof net.minecraft.world.entity.Mob mob && mob.isLeashed())
+                || (entity instanceof Leashable leashable && leashable.getLeashHolder() != null)
+                || entity instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal
+                || entity instanceof net.minecraft.world.entity.monster.Guardian
+                || entity instanceof net.minecraft.world.entity.monster.warden.Warden
                 || entity instanceof net.minecraft.world.entity.player.Player
                 || !entity.getClass().getName().startsWith("net.minecraft.world.entity.")
                 || entity == client.player
@@ -66,6 +91,7 @@ public final class EntityOcclusionCuller {
         }
 
         if (!Double.isFinite(shadowRadius) || shadowRadius < 0.0
+                || HAS_CUSTOM_SHADOW_RADIUS.get(rendererType)
                 || !Double.isFinite(renderBounds.minX) || !Double.isFinite(renderBounds.minY)
                 || !Double.isFinite(renderBounds.minZ) || !Double.isFinite(renderBounds.maxX)
                 || !Double.isFinite(renderBounds.maxY) || !Double.isFinite(renderBounds.maxZ)
@@ -74,23 +100,30 @@ public final class EntityOcclusionCuller {
             return false;
         }
 
-        // Expand primitive coordinates instead of allocating another AABB for
-        // every entity on every frame. The lower Y margin also covers shadow
-        // pieces projected onto nearby lower terrain.
-        double horizontalPadding = BOUNDS_PADDING + shadowRadius;
-        double minX = renderBounds.minX - horizontalPadding;
-        double minY = renderBounds.minY - BOUNDS_PADDING
+        // EntityRenderer already inflated this AABB by 0.5 blocks. Add only
+        // the base shadow footprint using primitive coordinates, avoiding a
+        // second AABB allocation on the entity-extraction hot path.
+        double rawSizeX = renderBounds.maxX - renderBounds.minX;
+        double rawSizeY = renderBounds.maxY - renderBounds.minY;
+        double rawSizeZ = renderBounds.maxZ - renderBounds.minZ;
+        if (rawSizeX >= 3.9 && rawSizeY >= 3.9 && rawSizeZ >= 3.9) {
+            // EntityRenderer uses a 4x4x4 fallback for invalid/empty bounds.
+            return false;
+        }
+
+        double minX = renderBounds.minX - shadowRadius;
+        double minY = renderBounds.minY
                 - (shadowRadius > 0.0 ? SHADOW_DROP_PADDING : 0.0);
-        double minZ = renderBounds.minZ - horizontalPadding;
-        double maxX = renderBounds.maxX + horizontalPadding;
-        double maxY = renderBounds.maxY + BOUNDS_PADDING;
-        double maxZ = renderBounds.maxZ + horizontalPadding;
+        double minZ = renderBounds.minZ - shadowRadius;
+        double maxX = renderBounds.maxX + shadowRadius;
+        double maxY = renderBounds.maxY;
+        double maxZ = renderBounds.maxZ + shadowRadius;
 
         double sizeX = maxX - minX;
         double sizeY = maxY - minY;
         double sizeZ = maxZ - minZ;
-        if (sizeX < 0.2 || sizeY < 0.2 || sizeZ < 0.2
-                || sizeX > 6.0 || sizeY > 6.0 || sizeZ > 6.0) {
+        if (sizeX < 1.01 || sizeY < 1.01 || sizeZ < 1.01
+                || sizeX > 4.5 || sizeY > 4.5 || sizeZ > 4.5) {
             return false;
         }
 
