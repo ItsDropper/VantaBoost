@@ -17,7 +17,7 @@ import java.util.WeakHashMap;
 /**
  * Render-thread-only entity occlusion cache.
  *
- * <p>World access stays on the client/render thread. Only stationary entities
+ * <p>World access stays on the client thread. Only stationary entities
  * with vanilla renderers are considered. Every cache entry is invalidated by
  * camera movement, entity-bound movement, block changes, or chunk lifecycle
  * changes. Query work is bounded per client tick; when the budget is exhausted
