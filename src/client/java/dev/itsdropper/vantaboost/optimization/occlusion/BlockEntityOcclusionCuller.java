@@ -1,6 +1,6 @@
 package dev.itsdropper.vantaboost.optimization.occlusion;
 
-import dev.itsdropper.vantaboost.compatibility.IrisShaderPackCompatibility;
+import dev.itsdropper.vantaboost.optimization.occlusion.IrisShaderPackCompatibility;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
