@@ -384,6 +384,12 @@ class OcclusionSamplingTest {
         assertFalse(OcclusionSampling.getFaceCellRange(
                 new double[]{-2.75, 2_000_000_000.0, -3.75, 2_000_000_000.0},
                 cells, 64));
+        assertFalse(OcclusionSampling.getFaceCellRange(
+                new double[]{3_000_000_000.0, 3_000_000_001.0, 0.25, 0.75},
+                cells, 64));
+        assertFalse(OcclusionSampling.getFaceCellRange(
+                new double[]{-3_000_000_001.0, -3_000_000_000.0, 0.25, 0.75},
+                cells, 64));
     }
 
     @Test
