@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -192,13 +193,13 @@ class OcclusionSamplingTest {
 
     @Test
     void shadowBoundsIncludeBlockFlooringAndStrengthDependentDepth() {
-        assertTrue(OcclusionShadowBounds.horizontalPadding(0.5) == 1.5);
-        assertTrue(OcclusionShadowBounds.horizontalPadding(0.0) == 0.0);
-        assertTrue(OcclusionShadowBounds.verticalDropPadding(0.5, 1.0) == 1.5);
-        assertTrue(OcclusionShadowBounds.verticalDropPadding(2.0, 1.0) == 2.0);
-        assertTrue(OcclusionShadowBounds.verticalDropPadding(2.0, 2.0) == 3.0);
-        assertTrue(OcclusionShadowBounds.verticalRisePadding(0.5) == 1.0);
-        assertTrue(OcclusionShadowBounds.verticalRisePadding(0.0) == 0.0);
+        assertEquals(1.5, OcclusionShadowBounds.horizontalPadding(0.5));
+        assertEquals(0.0, OcclusionShadowBounds.horizontalPadding(0.0));
+        assertEquals(1.5, OcclusionShadowBounds.verticalDropPadding(0.5, 1.0));
+        assertEquals(2.0, OcclusionShadowBounds.verticalDropPadding(2.0, 1.0));
+        assertEquals(3.0, OcclusionShadowBounds.verticalDropPadding(2.0, 2.0));
+        assertEquals(1.0, OcclusionShadowBounds.verticalRisePadding(0.5));
+        assertEquals(0.0, OcclusionShadowBounds.verticalRisePadding(0.0));
     }
 
     @Test
