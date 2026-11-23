@@ -285,7 +285,7 @@ public final class EntityOcclusionCuller {
         boolean occluded = false;
         long queryStarted = EntityOcclusionDiagnostics.ENABLED ? System.nanoTime() : 0L;
         try {
-            occluded = isBlockedByOpaqueFullBlock(
+            occluded = hasOpaqueBlockPlaneOcclusion(
                     level, entity, cameraX, cameraY, cameraZ,
                     minX, minY, minZ, maxX, maxY, maxZ);
         } catch (RuntimeException ignored) {
@@ -355,7 +355,7 @@ public final class EntityOcclusionCuller {
         }
     }
 
-    private static boolean isBlockedByOpaqueFullBlock(
+    private static boolean hasOpaqueBlockPlaneOcclusion(
             ClientLevel level,
             Entity entity,
             double cameraX, double cameraY, double cameraZ,
