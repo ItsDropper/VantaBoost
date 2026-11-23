@@ -98,11 +98,11 @@ Version values live in gradle.properties and must be updated as a coordinated, t
 
 The current prototype is client-only and does not add a Vanta Client dependency.
 
-- `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z` is intercepted at RETURN, after vanilla frustum/distance acceptance.
+- `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z` redirects its `Frustum.isVisible(AABB)Z` call. The redirect preserves vanilla frustum visibility and reuses the exact AABB vanilla already computed.
 - ClientLevel direct, verified, and predicted block-state updates, section activation, chunk loads, and chunk unloads invalidate cached visibility.
 - The occlusion test accepts only one opaque full-block face that geometrically covers the complete projected conservative AABB. Uncertainty always renders.
 - Modded entity classes and renderer classes, dynamic/airborne entities, players, named/glowing/burning/leashed entities, and entities with passenger relationships are excluded.
-- Ground-shadow radius is included in the tested bounds.
+- Ground-shadow radius and a conservative downward shadow margin are included in primitive bounds; the hot path does not allocate a second AABB.
 - The cache is client-thread-only and holds a weak reference to the active world. This remains experimental until CI build, actual launch/mixin application, visual regression checks, compatibility checks, and controlled profiling are verified.
 
 ## Initialization non-goals
