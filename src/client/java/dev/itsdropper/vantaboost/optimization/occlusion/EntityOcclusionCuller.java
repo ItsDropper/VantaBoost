@@ -311,19 +311,19 @@ public final class EntityOcclusionCuller {
                 axis, normalStep, plane, minU, maxU, minV, maxV);
     }
 
-    static record CacheEntry(
+    private record CacheEntry(
             long worldRevision,
             double cameraX, double cameraY, double cameraZ,
             double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ,
             boolean occluded
     ) {
-        boolean matches(
+        private boolean matches(
                 long revision, double cameraX, double cameraY, double cameraZ,
                 double minX, double minY, double minZ,
                 double maxX, double maxY, double maxZ
         ) {
-            return (!occluded || worldRevision == revision)
+            return OcclusionCachePolicy.isReusable(occluded, worldRevision, revision)
                     && this.cameraX == cameraX && this.cameraY == cameraY && this.cameraZ == cameraZ
                     && this.minX == minX && this.minY == minY && this.minZ == minZ
                     && this.maxX == maxX && this.maxY == maxY && this.maxZ == maxZ;
