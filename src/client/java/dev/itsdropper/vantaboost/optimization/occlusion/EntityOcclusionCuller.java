@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -37,6 +38,10 @@ public final class EntityOcclusionCuller {
     private static final int MAX_CACHE_ENTRIES = 4096;
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
+    private static final boolean UNSUPPORTED_RENDERER_LOADED =
+            FabricLoader.getInstance().isModLoaded("iris")
+                    || FabricLoader.getInstance().isModLoaded("canvas")
+                    || FabricLoader.getInstance().isModLoaded("vulkanmod");
     private static final ClassValue<Boolean> HAS_CUSTOM_SHADOW_RADIUS = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> rendererType) {
@@ -72,7 +77,8 @@ public final class EntityOcclusionCuller {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
 
-        if (level == null || entity.level() != level || entity.isRemoved()
+        if (UNSUPPORTED_RENDERER_LOADED
+                || level == null || entity.level() != level || entity.isRemoved()
                 || client.shouldEntityAppearGlowing(entity) || entity.displayFireAnimation()
                 || entity.hasCustomName() || entity.shouldShowName()
                 || entity.isPassenger() || entity.isVehicle() || !entity.onGround()
@@ -235,8 +241,14 @@ public final class EntityOcclusionCuller {
                 ClipContext.Fluid.NONE,
                 entity));
 
-        if (hit.getType() != HitResult.Type.BLOCK || hit.isInside() || hit.isWorldBorderHit()
-                || !level.getBlockState(hit.getBlockPos()).isSolidRender()) {
+        if (hit.getType() != HitResult.Type.BLOCK || hit.isInside() || hit.isWorldBorderHit()) {
+            return false;
+        }
+
+        var occluderState = level.getBlockState(hit.getBlockPos());
+        if (!occluderState.isSolidRender()
+                || !occluderState.getBlock().getClass().getName()
+                .startsWith("net.minecraft.world.level.block.")) {
             return false;
         }
 
