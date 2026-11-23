@@ -37,9 +37,9 @@ Record every investigated optimization, including rejected experiments. Compilat
 
 ---
 
-## Research state — 2026-11-23
+## Research state — 2026-11-24
 
-Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experimental entity-occlusion mixin is implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
+Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental entity and block-entity occlusion prototypes are implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
 
 ### [VB-R01] Redundant framebuffer unbind avoidance
 
@@ -98,7 +98,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). An experiment
 - Measured baseline cost: Unknown; no block-entity render-state or submission profile has been captured
 - Root cause: In block-entity-dense scenes, vanilla can pass a block entity through its renderer distance check and still create a render state and submit geometry even when a full opaque wall hides the complete conservative render envelope.
 - Hypothesis: Rejecting proven-occluded block entities immediately after vanilla's renderer-specific shouldRender check, but before createRenderState and extractRenderState, can reduce extraction, render submission, and GPU work in dense builds.
-- Proposed mechanism: LevelRendererBlockEntityOcclusionMixin scopes checks to the main visible-block-entity extraction pass. BlockEntityRenderDispatcherOcclusionMixin wraps the renderer's existing shouldRender result and preserves it; only a vanilla-eligible object can be considered. A strict exact-class allowlist covers chest, bed, shulker box, decorated pot, bell, enchanting table, lectern, and copper-golem-statue renderer/entity pairs. The culler uses a conservative three-block AABB envelope, one center ray, and the same all-cells-on-one-coplanar-plane proof as the entity prototype. A 32-query-per-tick budget, rotating position buckets, weak-key cache, exact camera/bounds snapshots, and world-revision invalidation bound the work.
+- Proposed mechanism: LevelRendererBlockEntityOcclusionMixin scopes checks to the main visible-block-entity extraction pass. BlockEntityRenderDispatcherOcclusionMixin wraps the renderer's existing shouldRender result and preserves it; only a vanilla-eligible object can be considered. A strict exact-class allowlist covers chest, bed, shulker box, decorated pot, bell, enchanting table, lectern, and copper-golem-statue renderer/entity pairs. The culler uses a conservative three-block AABB envelope, one center ray, and the same all-cells-on-one-coplanar-plane proof as the entity prototype. A 32-query-per-tick budget, rotating position buckets, weak-key cache, exact bounds snapshots, exact-camera reuse for positive occlusion results, and conservative reuse of negative results across camera/world changes bound the work.
 - Expected metrics: Fewer block-entity render states, renderer submissions, and GPU work in occluded block-entity-heavy scenes; possible render-thread overhead from raycasts and cache checks.
 - Correctness constraints: Preserve vanilla shouldRender; exclude globally rendered and off-screen renderers; exact vanilla class matches only; fail open for unknown renderers/entities, shader-pack-active Iris, missing camera/world state, budget exhaustion, raycast errors, partial/holed occluders, or any uncertain projection. The three-block envelope is intentionally broad; it must be visually validated for every allowlisted renderer, especially double chests, beds, and animated models.
 - Compatibility risks: Renderer mods can alter block-entity geometry or extraction flow. Canvas and Entity Culling disable this prototype. Iris shader packs cause fail-open. Other renderer combinations still require runtime testing.
