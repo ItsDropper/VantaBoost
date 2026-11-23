@@ -6,9 +6,6 @@ import java.util.Set;
 /**
  * Strict allowlist of exact vanilla renderer/block-entity pairs whose geometry
  * is bounded by the culler's conservative three-block envelope.
- *
- * <p>Modded subclasses, mismatched renderer/entity pairs, globally rendered
- * objects, and off-screen renderers always fail open.</p>
  */
 public final class BlockEntityOcclusionPolicy {
     private static final Map<String, Set<String>> SUPPORTED_PAIRS = Map.of(
@@ -35,14 +32,18 @@ public final class BlockEntityOcclusionPolicy {
     private BlockEntityOcclusionPolicy() {
     }
 
-    public static boolean isSupported(
+    public static boolean isSupported(String rendererClassName, String blockEntityClassName) {
+        return SUPPORTED_PAIRS.getOrDefault(rendererClassName, Set.of())
+                .contains(blockEntityClassName);
+    }
+
+    public static boolean isEligible(
             String rendererClassName,
             String blockEntityClassName,
             boolean rendersOffScreen,
             boolean globallyRendered
     ) {
         return !rendersOffScreen && !globallyRendered
-                && SUPPORTED_PAIRS.getOrDefault(rendererClassName, Set.of())
-                .contains(blockEntityClassName);
+                && isSupported(rendererClassName, blockEntityClassName);
     }
 }
