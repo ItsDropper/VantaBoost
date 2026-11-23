@@ -223,6 +223,35 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void shadowEnvelopeContainsFlooredBlocksAcrossFractionalEntityPositions() {
+        double[] radii = {0.25, 0.5, 1.0, 2.0};
+        double[] strengths = {0.25, 0.5, 1.0, 1.5, 2.0};
+        double epsilon = 1.0E-12;
+
+        for (int step = 0; step <= 100; step++) {
+            double position = step / 100.0;
+            for (double radius : radii) {
+                double minHorizontalBlock = Math.floor(position - radius);
+                double maxHorizontalBlock = Math.floor(position + radius) + 1.0;
+                double horizontalPadding = OcclusionShadowBounds.horizontalPadding(radius);
+                assertTrue(position - minHorizontalBlock <= horizontalPadding + epsilon);
+                assertTrue(maxHorizontalBlock - position <= horizontalPadding + epsilon);
+
+                for (double strength : strengths) {
+                    double maximumDepth = Math.min(
+                            radius, Math.max(0.0, 2.0 * strength - 1.0));
+                    double minShadowBlock = Math.floor(position - maximumDepth);
+                    double maxShadowBlock = Math.floor(position) + 1.0;
+                    assertTrue(position - minShadowBlock
+                            <= OcclusionShadowBounds.verticalDropPadding(radius, strength) + epsilon);
+                    assertTrue(maxShadowBlock - position
+                            <= OcclusionShadowBounds.verticalRisePadding(radius) + epsilon);
+                }
+            }
+        }
+    }
+
+    @Test
     void rendererOverrideDetectionRecognizesSpecializedRenderStateParameters() {
         assertFalse(RendererOverridePolicy.declaresStateMethod(
                 InheritedMobRenderer.class, TestMobRenderer.class,
