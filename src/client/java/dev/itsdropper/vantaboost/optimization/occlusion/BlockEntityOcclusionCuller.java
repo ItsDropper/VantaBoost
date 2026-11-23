@@ -73,7 +73,7 @@ public final class BlockEntityOcclusionCuller {
      */
     public static boolean shouldCull(
             BlockEntity blockEntity,
-            BlockEntityRenderer<?, ?> renderer,
+            BlockEntityRenderer renderer,
             Vec3 rendererCameraPosition
     ) {
         long started = BlockEntityOcclusionDiagnostics.ENABLED ? System.nanoTime() : 0L;
@@ -87,7 +87,7 @@ public final class BlockEntityOcclusionCuller {
 
     private static boolean shouldCullInternal(
             BlockEntity blockEntity,
-            BlockEntityRenderer<?, ?> renderer,
+            BlockEntityRenderer renderer,
             Vec3 rendererCameraPosition
     ) {
         Minecraft client = Minecraft.getInstance();
