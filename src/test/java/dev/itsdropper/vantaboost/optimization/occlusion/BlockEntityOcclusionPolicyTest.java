@@ -6,63 +6,35 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BlockEntityOcclusionPolicyTest {
-    private static final class VanillaChestRenderer {
-    }
-
-    private static final class VanillaChestBlockEntity {
-    }
-
-    private static final class ModdedChestRenderer extends VanillaChestRenderer {
-    }
-
-    private static final class ModdedChestBlockEntity extends VanillaChestBlockEntity {
-    }
+    private static final String CHEST_RENDERER =
+            "net.minecraft.client.renderer.blockentity.ChestRenderer";
+    private static final String CHEST_ENTITY =
+            "net.minecraft.world.level.block.entity.ChestBlockEntity";
 
     @Test
     void acceptsOnlyExactKnownVanillaRendererAndBlockEntityClasses() {
         assertTrue(BlockEntityOcclusionPolicy.isSupported(
-                type("net.minecraft.client.renderer.blockentity.ChestRenderer"),
-                type("net.minecraft.world.level.block.entity.ChestBlockEntity"),
-                false,
-                false));
+                CHEST_RENDERER, CHEST_ENTITY, false, false));
     }
 
     @Test
     void rejectsUnknownOrModdedRendererAndBlockEntityClasses() {
         assertFalse(BlockEntityOcclusionPolicy.isSupported(
-                ModdedChestRenderer.class, VanillaChestBlockEntity.class, false, false));
+                "example.mod.CustomChestRenderer", CHEST_ENTITY, false, false));
         assertFalse(BlockEntityOcclusionPolicy.isSupported(
-                VanillaChestRenderer.class, ModdedChestBlockEntity.class, false, false));
+                CHEST_RENDERER, "example.mod.CustomChestBlockEntity", false, false));
         assertFalse(BlockEntityOcclusionPolicy.isSupported(
-                type("net.minecraft.client.renderer.blockentity.BeaconRenderer"),
-                type("net.minecraft.world.level.block.entity.BeaconBlockEntity"),
+                "net.minecraft.client.renderer.blockentity.BeaconRenderer",
+                "net.minecraft.world.level.block.entity.BeaconBlockEntity",
                 false,
                 false));
     }
 
     @Test
     void rejectsOffScreenAndGloballyRenderedBlockEntities() {
-        Class<?> renderer = type("net.minecraft.client.renderer.blockentity.ChestRenderer");
-        Class<?> blockEntity = type("net.minecraft.world.level.block.entity.ChestBlockEntity");
-
-        assertFalse(BlockEntityOcclusionPolicy.isSupported(renderer, blockEntity, true, false));
-        assertFalse(BlockEntityOcclusionPolicy.isSupported(renderer, blockEntity, false, true));
-    }
-
-    private static Class<?> type(String name) {
-        return new NamedType(name);
-    }
-
-    private static final class NamedType extends ClassLoader {
-        private final String name;
-
-        private NamedType(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return this.name;
-        }
+        assertFalse(BlockEntityOcclusionPolicy.isSupported(
+                CHEST_RENDERER, CHEST_ENTITY, true, false));
+        assertFalse(BlockEntityOcclusionPolicy.isSupported(
+                CHEST_RENDERER, CHEST_ENTITY, false, true));
     }
 }
