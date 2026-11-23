@@ -87,7 +87,12 @@ public final class EntityOcclusionCuller {
         }
 
         double velocitySquared = entity.getDeltaMovement().lengthSqr();
-        if (!Double.isFinite(velocitySquared) || velocitySquared > MAX_VELOCITY_SQUARED) {
+        if (!Double.isFinite(velocitySquared) || velocitySquared > MAX_VELOCITY_SQUARED
+                || entity.xOld != entity.getX() || entity.yOld != entity.getY()
+                || entity.zOld != entity.getZ()
+                || entity.yRotO != entity.getYRot() || entity.xRotO != entity.getXRot()) {
+            // EntityRenderer extracts interpolated positions/rotations. Do not
+            // cull against current bounds while the render state is interpolating.
             return false;
         }
 
