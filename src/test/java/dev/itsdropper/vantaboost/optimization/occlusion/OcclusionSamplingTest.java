@@ -503,6 +503,15 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void visibleCacheEntriesSurviveCameraMovementButOccludedEntriesDoNot() {
+        assertTrue(OcclusionCachePolicy.isReusable(false, 4L, 5L, false));
+        assertTrue(OcclusionCachePolicy.isReusable(false, 4L, 4L, true));
+        assertFalse(OcclusionCachePolicy.isReusable(true, 4L, 4L, false));
+        assertTrue(OcclusionCachePolicy.isReusable(true, 4L, 4L, true));
+        assertFalse(OcclusionCachePolicy.isReusable(true, 4L, 5L, true));
+    }
+
+    @Test
     void interpolationPaddingCoversEveryPositionBetweenPreviousAndCurrent() {
         double previous = -0.75;
         double current = 0.5;
