@@ -480,10 +480,10 @@ class OcclusionSamplingTest {
 
     @Test
     void rendererSpecificNameTagOverloadsAreDetected() {
-        assertFalse(RendererOverridePolicy.declaresSingleArgumentMethod(
+        assertFalse(RendererOverridePolicy.declaresMethodWithFirstParameter(
                 InheritedNameTagRenderer.class, TestNameTagRenderer.class,
                 "shouldShowName", TestEntity.class));
-        assertTrue(RendererOverridePolicy.declaresSingleArgumentMethod(
+        assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
                 CustomNameTagRenderer.class, TestNameTagRenderer.class,
                 "shouldShowName", TestEntity.class));
     }
