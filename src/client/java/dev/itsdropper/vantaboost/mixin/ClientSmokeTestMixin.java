@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * CI-only startup probe. It is inert in normal launches and exits after forcing
- * the two optimization target classes through the Mixin transformer.
+ * the three optimization target classes through the Mixin transformer.
  */
 @Mixin(Minecraft.class)
 public abstract class ClientSmokeTestMixin {
