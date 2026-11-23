@@ -110,7 +110,7 @@ public final class EntityOcclusionCuller {
                 || entity instanceof net.minecraft.world.entity.monster.Witch
                 || entity instanceof net.minecraft.world.entity.player.Player
                 || !entity.getClass().getName().startsWith("net.minecraft.world.entity.")
-                || entity == client.player
+                || entity == client.player || entity == client.getCameraEntity()
                 || renderBounds == null || rendererType == null) {
             return false;
         }
