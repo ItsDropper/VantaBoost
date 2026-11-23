@@ -168,15 +168,9 @@ class OcclusionSamplingTest {
 
     @Test
     void visibleCacheEntriesSurviveWorldRevisionsButOccludedEntriesDoNot() {
-        var visible = new EntityOcclusionCuller.CacheEntry(
-                4L, 1, 2, 3, 4, 5, 6, 7, 8, 9, false);
-        var occluded = new EntityOcclusionCuller.CacheEntry(
-                4L, 1, 2, 3, 4, 5, 6, 7, 8, 9, true);
-
-        assertTrue(visible.matches(5L, 1, 2, 3, 4, 5, 6, 7, 8, 9));
-        assertFalse(occluded.matches(5L, 1, 2, 3, 4, 5, 6, 7, 8, 9));
-        assertTrue(occluded.matches(4L, 1, 2, 3, 4, 5, 6, 7, 8, 9));
-        assertFalse(visible.matches(5L, 1, 2, 3, 4, 5, 6, 7, 8, 10));
+        assertTrue(OcclusionCachePolicy.isReusable(false, 4L, 5L));
+        assertFalse(OcclusionCachePolicy.isReusable(true, 4L, 5L));
+        assertTrue(OcclusionCachePolicy.isReusable(true, 4L, 4L));
     }
 
     @Test
