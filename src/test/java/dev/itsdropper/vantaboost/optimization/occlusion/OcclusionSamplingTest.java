@@ -275,9 +275,9 @@ class OcclusionSamplingTest {
 
     @Test
     void livingRendererShadowRadiusUsesEntityAndMobAgeScale() {
-        assertEquals(0.5, OcclusionShadowBounds.scaledRadius(0.5, 1.0, 1.0, false));
-        assertEquals(1.0, OcclusionShadowBounds.scaledRadius(0.5, 2.0, 1.0, false));
-        assertEquals(0.25, OcclusionShadowBounds.scaledRadius(0.5, 1.0, 0.5, true));
+        assertEquals(0.5, OcclusionShadowBounds.scaledRadius(0.5, 1.0, 1.0, false), 0.0);
+        assertEquals(1.0, OcclusionShadowBounds.scaledRadius(0.5, 2.0, 1.0, false), 0.0);
+        assertEquals(0.25, OcclusionShadowBounds.scaledRadius(0.5, 1.0, 0.5, true), 0.0);
     }
 
     @Test
