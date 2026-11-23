@@ -8,6 +8,8 @@
     "LivingEntityRendererNameTagInvoker",
     "MobRendererNameTagInvoker",
     "LevelRendererEntityOcclusionMixin",
+    "LevelRendererBlockEntityOcclusionMixin",
+    "BlockEntityRenderDispatcherOcclusionMixin",
     "ClientLevelOcclusionMixin",
     "ClientSmokeTestMixin"
   ],
