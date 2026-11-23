@@ -28,8 +28,8 @@ import java.util.WeakHashMap;
  * <p>World access stays on the client thread. Vanilla entities with vanilla
  * renderers are considered only when previous-to-current interpolation can be
  * enclosed by a bounded expansion of the vanilla culling AABB, and renderers
- * using custom culling bounds, shadow radii, shadow strengths, or render offsets
- * are excluded unless the vanilla LivingEntityRenderer bounds are used.
+ * using custom culling bounds, submit geometry, shadow radii, shadow strengths, or
+ * render offsets are excluded unless the vanilla LivingEntityRenderer bounds are used.
  * A cached result is reused only while the Frustum origin and conservative bounds
  * are unchanged; block and chunk
  * mutations advance a world revision. Query work is bounded per client tick,
