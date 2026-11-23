@@ -105,6 +105,19 @@ The current prototype is client-only and does not add a Vanta Client dependency.
 - Vanilla shadow bounds include the floored horizontal radius footprint, the strength-dependent vertical depth, and floor-rounding margins above and below. Renderers with nonstandard `getShadowRadius` or `getShadowStrength` overrides fail open. The hot path reuses vanilla's AABB and does not allocate a second one.
 - The cache is client-thread-only and holds a weak reference to the active world. This remains experimental until CI build, actual launch/mixin application, visual regression checks, compatibility checks, and controlled profiling are verified.
 
+## Experimental block-entity occlusion integration
+
+The block-entity prototype is client-only and independent of Vanta Client.
+
+- LevelRendererBlockEntityOcclusionMixin scopes the optimization to LevelRenderer.extractVisibleBlockEntities(Camera,float,LevelRenderState), leaving unrelated render passes untouched.
+- BlockEntityRenderDispatcherOcclusionMixin wraps BlockEntityRenderer.shouldRender inside BlockEntityRenderDispatcher.tryExtractRenderState. It first invokes the original renderer policy and only then considers occlusion. Returning false at this point prevents createRenderState and extractRenderState from running.
+- The allowlist requires exact vanilla renderer and block-entity class names. Current pairs cover ChestRenderer with chest variants, BedRenderer, ShulkerBoxRenderer, DecoratedPotRenderer, BellRenderer, EnchantTableRenderer, LecternRenderer, and CopperGolemStatueBlockRenderer. Modded subclasses, unknown renderers, off-screen renderers, and globally rendered block entities fail open.
+- The tested envelope is a 3×3×3 AABB around the block-entity block position. It is intentionally wider than the ordinary block bounds to cover double chests, beds, and small model protrusions. This bound still requires in-game visual verification for every allowlisted renderer; expand the allowlist only with inspected geometry and correctness tests.
+- A synchronous ray from the main camera to the envelope center identifies a candidate occluder. The projected envelope must fit strictly inside a bounded rectangle of adjacent vanilla opaque full-block faces on one plane. Every face cell is checked; partial faces, holes, modded blocks, and uncertain projections fail open.
+- The per-tick query budget is 32. Results use a weak-key cache with exact camera/envelope snapshots. Positive occlusion results are invalidated by the same ClientLevel block/chunk/world revision hook used by entity culling; negative results can remain cached because they only cause extra rendering.
+- The optimization fails open with Iris shader packs active or when the Iris API cannot be queried. Canvas and Entity Culling disable it. Manual disable: -Dvantaboost.disableBlockEntityOcclusion=true. Opt-in diagnostics: -Dvantaboost.profileBlockEntityOcclusion=true.
+- This remains an experimental correctness prototype. CI compilation and mixin application do not prove that renderer bounds are complete, that no visible block entity is hidden, or that performance improves. A dense-build visual regression pass and controlled before/after profile are required.
+
 ## Initialization non-goals
 
-No speculative additional culling, caching, batching, pooling, or multithreading beyond the explicitly documented experimental entity-occlusion prototype. No claimed FPS gains. No mandatory Vanta Client integration. No server-side component. No empty optimization registry or unused plugin framework.
+No speculative additional culling, caching, batching, pooling, or multithreading beyond the explicitly documented experimental entity- and block-entity-occlusion prototypes. No claimed FPS gains. No mandatory Vanta Client integration. No server-side component. No empty optimization registry or unused plugin framework.
