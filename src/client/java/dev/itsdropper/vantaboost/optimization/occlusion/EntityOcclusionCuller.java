@@ -41,7 +41,7 @@ public final class EntityOcclusionCuller {
     private static final double MAX_DISTANCE_SQUARED = 48.0 * 48.0;
     private static final double MAX_INTERPOLATION_PADDING = 1.5;
     private static final int MAX_CACHE_ENTRIES = 16384;
-    private static final int MAX_FACE_CELLS = 64;
+    private static final int MAX_FACE_CELLS = 16;
     // The culler is client-thread-only; reusable scratch arrays avoid hot-path
     // allocations while projecting and enumerating the candidate wall plane.
     private static final double[] PROJECTED_FACE_BOUNDS = new double[4];
