@@ -6,12 +6,12 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
  * <p>Percentiles are reported as the upper bound of the bucket containing the
  * requested rank. Recording performs no allocation.</p>
  */
-public final class NanoHistogram {
+final class NanoHistogram {
     private static final int BUCKET_COUNT = Long.SIZE;
     private final long[] buckets = new long[BUCKET_COUNT];
     private long sampleCount;
 
-    public void record(long elapsedNanos) {
+    void record(long elapsedNanos) {
         long value = Math.max(0L, elapsedNanos);
         int bucket = value <= 1L
                 ? 0
@@ -20,7 +20,7 @@ public final class NanoHistogram {
         sampleCount++;
     }
 
-    public long percentileUpperBoundNanos(double percentile) {
+    long percentileUpperBoundNanos(double percentile) {
         if (!(percentile > 0.0 && percentile <= 1.0)) {
             throw new IllegalArgumentException("percentile must be in (0, 1]");
         }
@@ -41,11 +41,11 @@ public final class NanoHistogram {
         return Long.MAX_VALUE;
     }
 
-    public long sampleCount() {
+    long sampleCount() {
         return sampleCount;
     }
 
-    public void reset() {
+    void reset() {
         java.util.Arrays.fill(buckets, 0L);
         sampleCount = 0L;
     }
