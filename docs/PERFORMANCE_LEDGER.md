@@ -57,7 +57,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not applicable.
 - Before/after distributions: None
 - Regressions: None known.
-- Validation evidence: CI build, JUnit tests, and all four headless client mixin smoke configurations pending; the CI smoke assertions were updated to verify the new wrapper handlers.
+- Validation evidence: The first wrapper commit's run [#45442209418](https://github.com/ItsDropper/VantaBoost/actions/runs/45442209418) passed build/tests but its smoke step exposed stale assertions for the old HEAD/RETURN handler names. The follow-up updated the probe to check `vantaboost$trackMainEntityExtraction` and `vantaboost$trackBlockEntityExtraction`; [run #45442318487](https://github.com/ItsDropper/VantaBoost/actions/runs/45442318487) then passed build/tests, full-enabled, entity-only, block-entity-only, default-disabled smoke tests, and JAR upload.
 - Rollback condition: Revert if the wrapper cannot compose with supported renderer mixins or fails to apply on the exact 1.21.11 descriptors.
 - Decision and rationale: Keep; extraction scope state must be exception-safe because it gates whether entities and block entities may be hidden.
 
@@ -77,7 +77,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not applicable; diagnostic output only.
 - Before/after distributions: None
 - Regressions: None known.
-- Validation evidence: Existing `NanoHistogramTest` covers nearest-rank p50 and upper-bound behavior; full CI pending.
+- Validation evidence: Existing `NanoHistogramTest` covers nearest-rank p50 and upper-bound behavior. [Run #45441823246](https://github.com/ItsDropper/VantaBoost/actions/runs/45441823246) passed build/tests, all four client mixin smoke configurations, and JAR upload.
 - Rollback condition: Revert if reporting overhead is measurable in the opt-in path or downstream tooling depends on the old positional log format.
 - Decision and rationale: Keep; median plus tail latency is more useful for diagnosing distributions while retaining constant-memory histograms.
 
