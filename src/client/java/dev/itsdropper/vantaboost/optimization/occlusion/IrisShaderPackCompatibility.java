@@ -43,7 +43,7 @@ final class IrisShaderPackCompatibility {
 
         try {
             return access.isShaderPackInUse();
-        } catch (ReflectiveOperationException | LinkageError | SecurityException | RuntimeException exception) {
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             // Unknown Iris state is not safe to treat as a vanilla renderer.
             return true;
         }
@@ -55,7 +55,7 @@ final class IrisShaderPackCompatibility {
             Object api = irisApi.getMethod("getInstance").invoke(null);
             Method isShaderPackInUse = irisApi.getMethod("isShaderPackInUse");
             return new IrisApiAccess(api, isShaderPackInUse);
-        } catch (ReflectiveOperationException | LinkageError | SecurityException | RuntimeException exception) {
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             // Cache an unavailable result: repeatedly resolving a broken API
             // every frame would add overhead without making culling safer.
             return UNAVAILABLE;
