@@ -94,14 +94,14 @@ public final class BlockEntityOcclusionDiagnostics {
                         + "cacheHits={}, cachedCulls={}, budgetSkips={}, faceCellsPlanned={}, "
                         + "queries={}, queryCulls={}, avgQuery={}ns, p50Query<={}ns, p95Query<={}ns, p99Query<={}ns",
                 frames, candidateCalls, culls, averageCullerNanos,
-                CULLER_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
-                CULLER_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
-                CULLER_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
+                CULLER_LATENCY.percentileUpperBoundNanos(0.50),
+                CULLER_LATENCY.percentileUpperBoundNanos(0.95),
+                CULLER_LATENCY.percentileUpperBoundNanos(0.99),
                 maximumCullerNanos, cacheHits, cachedCulls, budgetSkips,
                 faceCellsPlanned, queries, queryCulls, averageQueryNanos,
-                QUERY_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
-                QUERY_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
-                QUERY_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L);
+                QUERY_LATENCY.percentileUpperBoundNanos(0.50),
+                QUERY_LATENCY.percentileUpperBoundNanos(0.95),
+                QUERY_LATENCY.percentileUpperBoundNanos(0.99));
 
         frames = 0L;
         candidateCalls = 0L;

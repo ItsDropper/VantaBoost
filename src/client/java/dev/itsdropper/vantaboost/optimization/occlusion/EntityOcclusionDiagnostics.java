@@ -99,14 +99,14 @@ public final class EntityOcclusionDiagnostics {
                         + "occlusionQueries={}, occlusionResults={}, avgQuery={}ns, "
                         + "p50Query<={}ns, p95Query<={}ns, p99Query<={}ns",
                 frames, candidateCalls, candidateOcclusions, averageCullerNanos,
-                CULLER_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
-                CULLER_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
-                CULLER_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
+                CULLER_LATENCY.percentileUpperBoundNanos(0.50),
+                CULLER_LATENCY.percentileUpperBoundNanos(0.95),
+                CULLER_LATENCY.percentileUpperBoundNanos(0.99),
                 maximumCullerNanos, cacheHits, cacheOcclusionHits, budgetSkips,
                 faceCellsPlanned, occlusionQueries, occlusionResults, averageQueryNanos,
-                QUERY_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
-                QUERY_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
-                QUERY_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L);
+                QUERY_LATENCY.percentileUpperBoundNanos(0.50),
+                QUERY_LATENCY.percentileUpperBoundNanos(0.95),
+                QUERY_LATENCY.percentileUpperBoundNanos(0.99));
 
         frames = 0L;
         candidateCalls = 0L;
