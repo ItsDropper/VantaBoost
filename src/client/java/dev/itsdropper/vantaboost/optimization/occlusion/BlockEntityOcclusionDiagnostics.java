@@ -19,6 +19,8 @@ public final class BlockEntityOcclusionDiagnostics {
     private static long culls;
     private static long cullerNanos;
     private static long maximumCullerNanos;
+    private static final NanoHistogram CULLER_LATENCY = new NanoHistogram();
+    private static final NanoHistogram QUERY_LATENCY = new NanoHistogram();
     private static long cacheHits;
     private static long cachedCulls;
     private static long budgetSkips;
@@ -37,6 +39,7 @@ public final class BlockEntityOcclusionDiagnostics {
         candidateCalls++;
         cullerNanos += Math.max(0L, elapsedNanos);
         maximumCullerNanos = Math.max(maximumCullerNanos, elapsedNanos);
+        CULLER_LATENCY.record(elapsedNanos);
         if (occluded) {
             culls++;
         }
@@ -70,6 +73,7 @@ public final class BlockEntityOcclusionDiagnostics {
         }
         queries++;
         queryNanos += Math.max(0L, elapsedNanos);
+        QUERY_LATENCY.record(elapsedNanos);
         if (occluded) {
             queryCulls++;
         }
@@ -86,18 +90,23 @@ public final class BlockEntityOcclusionDiagnostics {
                 ? 0L : queryNanos / queries / 1_000L;
         VantaBoost.LOGGER.info(
                 "Block-entity occlusion profile over {} frames: candidates={}, culls={}, "
-                        + "avgCuller={}us, maxCuller={}us, cacheHits={}, cachedCulls={}, "
-                        + "budgetSkips={}, faceCellsPlanned={}, queries={}, queryCulls={}, "
-                        + "avgQuery={}us",
+                        + "avgCuller={}us, p95Culler<={}us, p99Culler<={}us, maxCuller={}us, "
+                        + "cacheHits={}, cachedCulls={}, budgetSkips={}, faceCellsPlanned={}, "
+                        + "queries={}, queryCulls={}, avgQuery={}us, p95Query<={}us, p99Query<={}us",
                 frames, candidateCalls, culls, averageCullerMicros,
+                CULLER_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
+                CULLER_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
                 maximumCullerNanos / 1_000L, cacheHits, cachedCulls, budgetSkips,
-                faceCellsPlanned, queries, queryCulls, averageQueryMicros);
+                faceCellsPlanned, queries, queryCulls, averageQueryMicros,
+                QUERY_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
+                QUERY_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L);
 
         frames = 0L;
         candidateCalls = 0L;
         culls = 0L;
         cullerNanos = 0L;
         maximumCullerNanos = 0L;
+        CULLER_LATENCY.reset();
         cacheHits = 0L;
         cachedCulls = 0L;
         budgetSkips = 0L;
@@ -105,5 +114,6 @@ public final class BlockEntityOcclusionDiagnostics {
         queries = 0L;
         queryCulls = 0L;
         queryNanos = 0L;
+        QUERY_LATENCY.reset();
     }
 }

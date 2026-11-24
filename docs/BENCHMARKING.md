@@ -71,7 +71,7 @@ The experimental culler exposes opt-in counters. Start Minecraft with:
 -Dvantaboost.profileEntityOcclusion=true
 ```
 
-It emits a summary every 300 main entity-extraction frames while the culler is enabled. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time.
+It emits a summary every 300 main entity-extraction frames while the culler is enabled. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time. It also reports approximate p95/p99 latency upper bounds for candidate handling and actual occlusion queries; the fixed logarithmic histograms use constant memory and no per-sample allocation.
 
 Entity occlusion is disabled by default. Use the enabled diagnostic run to inspect query/cache behavior. Do not expect a diagnostic report when the feature is disabled: the default-disabled configuration omits the entity culling mixins entirely. For frame-time comparisons, run the same fixed scene once with `-Dvantaboost.enableEntityOcclusion=true` and once with the enable property omitted (or with `-Dvantaboost.disableEntityOcclusion=true`), with profiling disabled in both runs. This isolates the cost of the enabled feature; the disabled run retains only vanilla rendering.
 
@@ -86,7 +86,7 @@ Enable the experimental block-entity culler and its counters with:
 -Dvantaboost.profileBlockEntityOcclusion=true
 ```
 
-The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time.
+The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time. It also reports approximate p95/p99 latency upper bounds for candidate handling and ray queries using fixed-memory logarithmic histograms.
 
 For the disabled baseline, omit the enable property (or set `-Dvantaboost.disableBlockEntityOcclusion=true`). The Mixin config plugin omits the block-entity culling mixins entirely in that configuration, so no wrapper, culler timing counters, or diagnostic report is expected. Capture the same frame-time/JFR metrics with profiling disabled.
 
