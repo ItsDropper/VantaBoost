@@ -43,13 +43,7 @@ The experimental culler exposes opt-in counters. Start Minecraft with:
 
 It emits a summary every 300 main entity-extraction frames. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time.
 
-To measure the culler entry-point overhead with the optimization disabled, add:
-
-```text
--Dvantaboost.disableEntityOcclusion=true
-```
-
-Run the same fixed scene twice: once with the disable property and once without it, keeping the profiling property enabled in both runs. This compares the culler entry-point cost and query effectiveness. It does not include the mixin's preceding vanilla frustum and name-tag checks, which execute in both runs.
+Entity occlusion is disabled by default. To measure it, run the same fixed scene with `-Dvantaboost.enableEntityOcclusion=true` and then with `-Dvantaboost.disableEntityOcclusion=true`, keeping the profiling property enabled in both runs. This compares the enabled culler path with its disabled entry-point overhead. It does not include the mixin's preceding vanilla frustum and name-tag checks, which execute in both runs.
 
 **Important:** diagnostic mode calls `System.nanoTime()` for each candidate and therefore perturbs the hot path. Use it to understand query/cache behavior and approximate culler cost, not for final FPS or frame-time acceptance. For final performance comparisons, repeat the same runs with `vantaboost.profileEntityOcclusion` disabled and capture frame times/JFR separately.
 
