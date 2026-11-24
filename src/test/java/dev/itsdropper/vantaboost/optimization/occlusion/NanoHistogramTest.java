@@ -35,6 +35,14 @@ class NanoHistogramTest {
     }
 
     @Test
+    void handlesLargestRepresentableDurationWithoutBucketOverflow() {
+        NanoHistogram histogram = new NanoHistogram();
+        histogram.record(Long.MAX_VALUE);
+
+        assertEquals(Long.MAX_VALUE, histogram.percentileUpperBoundNanos(1.0));
+    }
+
+    @Test
     void clampsNegativeDurationsAndRejectsInvalidPercentiles() {
         NanoHistogram histogram = new NanoHistogram();
         histogram.record(-10L);
