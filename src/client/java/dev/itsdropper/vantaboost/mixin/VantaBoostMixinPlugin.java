@@ -23,6 +23,10 @@ public final class VantaBoostMixinPlugin implements IMixinConfigPlugin {
             "vantaboost.enableEntityOcclusion";
     private static final String BLOCK_ENTITY_OCCLUSION_PROPERTY =
             "vantaboost.enableBlockEntityOcclusion";
+    private static final String DISABLE_ENTITY_OCCLUSION_PROPERTY =
+            "vantaboost.disableEntityOcclusion";
+    private static final String DISABLE_BLOCK_ENTITY_OCCLUSION_PROPERTY =
+            "vantaboost.disableBlockEntityOcclusion";
     private static final Set<String> ENTITY_OCCLUSION_MIXINS = Set.of(
             "dev.itsdropper.vantaboost.mixin.EntityRendererOcclusionMixin",
             "dev.itsdropper.vantaboost.mixin.LivingEntityRendererNameTagInvoker",
@@ -52,16 +56,20 @@ public final class VantaBoostMixinPlugin implements IMixinConfigPlugin {
             return Boolean.getBoolean(PARTICLE_PROFILER_PROPERTY);
         }
         if (ENTITY_OCCLUSION_MIXINS.contains(mixinClassName)) {
-            return Boolean.getBoolean(ENTITY_OCCLUSION_PROPERTY);
+            return isEnabled(ENTITY_OCCLUSION_PROPERTY, DISABLE_ENTITY_OCCLUSION_PROPERTY);
         }
         if (BLOCK_ENTITY_OCCLUSION_MIXINS.contains(mixinClassName)) {
-            return Boolean.getBoolean(BLOCK_ENTITY_OCCLUSION_PROPERTY);
+            return isEnabled(BLOCK_ENTITY_OCCLUSION_PROPERTY, DISABLE_BLOCK_ENTITY_OCCLUSION_PROPERTY);
         }
         if (CLIENT_LEVEL_OCCLUSION_MIXIN.equals(mixinClassName)) {
-            return Boolean.getBoolean(ENTITY_OCCLUSION_PROPERTY)
-                    || Boolean.getBoolean(BLOCK_ENTITY_OCCLUSION_PROPERTY);
+            return isEnabled(ENTITY_OCCLUSION_PROPERTY, DISABLE_ENTITY_OCCLUSION_PROPERTY)
+                    || isEnabled(BLOCK_ENTITY_OCCLUSION_PROPERTY, DISABLE_BLOCK_ENTITY_OCCLUSION_PROPERTY);
         }
         return true;
+    }
+
+    private static boolean isEnabled(String enabledProperty, String disabledProperty) {
+        return Boolean.getBoolean(enabledProperty) && !Boolean.getBoolean(disabledProperty);
     }
 
     @Override
