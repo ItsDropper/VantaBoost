@@ -42,7 +42,7 @@ final class IrisShaderPackCompatibility {
         }
 
         try {
-            return access.isShaderPackInUse();
+            return access.isActive();
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             // Unknown Iris state is not safe to treat as a vanilla renderer.
             return true;
@@ -63,7 +63,7 @@ final class IrisShaderPackCompatibility {
     }
 
     private record IrisApiAccess(Object instance, Method isShaderPackInUse) {
-        private boolean isShaderPackInUse() throws ReflectiveOperationException {
+        private boolean isActive() throws ReflectiveOperationException {
             return Boolean.TRUE.equals(isShaderPackInUse.invoke(instance));
         }
     }
