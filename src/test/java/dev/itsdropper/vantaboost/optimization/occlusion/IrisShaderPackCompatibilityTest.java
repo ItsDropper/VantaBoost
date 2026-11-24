@@ -24,5 +24,10 @@ class IrisShaderPackCompatibilityTest {
         assertTrue(IrisShaderPackCompatibility.isShaderPackActive(true, classLoader));
         assertEquals(1, IrisApi.instanceRequests());
         assertEquals(2, IrisApi.shaderPackQueries());
+
+        IrisApi.setFailOnQuery(true);
+        assertTrue(IrisShaderPackCompatibility.isShaderPackActive(true, classLoader));
+        assertEquals(1, IrisApi.instanceRequests());
+        assertEquals(3, IrisApi.shaderPackQueries());
     }
 }

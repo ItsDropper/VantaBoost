@@ -1,5 +1,7 @@
 package dev.itsdropper.vantaboost.mixin;
 
+import dev.itsdropper.vantaboost.optimization.occlusion.OcclusionFeaturePolicy;
+
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -75,7 +77,9 @@ public final class VantaBoostMixinPlugin implements IMixinConfigPlugin {
     }
 
     private static boolean isEnabled(String enabledProperty, String disabledProperty) {
-        return Boolean.getBoolean(enabledProperty) && !Boolean.getBoolean(disabledProperty);
+        return OcclusionFeaturePolicy.isEnabled(
+                Boolean.getBoolean(enabledProperty),
+                Boolean.getBoolean(disabledProperty));
     }
 
     @Override

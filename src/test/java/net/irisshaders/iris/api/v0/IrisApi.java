@@ -10,6 +10,7 @@ public final class IrisApi {
     private static boolean shaderPackInUse;
     private static int instanceRequests;
     private static int shaderPackQueries;
+    private static boolean failOnQuery;
 
     private IrisApi() {
     }
@@ -21,6 +22,9 @@ public final class IrisApi {
 
     public boolean isShaderPackInUse() {
         shaderPackQueries++;
+        if (failOnQuery) {
+            throw new IllegalStateException("Simulated Iris API failure");
+        }
         return shaderPackInUse;
     }
 
@@ -28,10 +32,15 @@ public final class IrisApi {
         shaderPackInUse = false;
         instanceRequests = 0;
         shaderPackQueries = 0;
+        failOnQuery = false;
     }
 
     public static void setShaderPackInUse(boolean active) {
         shaderPackInUse = active;
+    }
+
+    public static void setFailOnQuery(boolean fail) {
+        failOnQuery = fail;
     }
 
     public static int instanceRequests() {
