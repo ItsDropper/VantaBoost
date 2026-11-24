@@ -2,7 +2,7 @@
 
 **Research date:** 2026-11-24  
 **Target:** Minecraft 1.21.11, Fabric Loader 0.18.1, Java 21, official Mojang mappings  
-**Scope:** source-level investigation plus an experimental entity-occlusion prototype. No VantaBoost runtime benchmark has been run.
+**Scope:** source-level investigation, experimental entity and block-entity occlusion prototypes, and opt-in particle-extraction profiling. No VantaBoost runtime benchmark has been run.
 
 ## Executive conclusion
 
@@ -296,7 +296,7 @@ No candidate is approved until:
 4. A candidate can be disabled cleanly when its prerequisite renderer/mod is absent.
 5. Benchmark data shows improvement outside measurement noise without unacceptable regressions.
 
-**Current decision:** the entity-only mixin is an experimental implementation authorized as a correctness prototype. It is intentionally conservative and may cull fewer entities than full voxel culling. It must not be called production-accepted until the 1.21.11 build, mixin application, launch behavior, visual correctness, compatibility, and controlled performance benchmarks are verified.
+**Current decision:** entity and block-entity occlusion are experimental, opt-in correctness prototypes. They must not be called production-accepted until the 1.21.11 build, mixin application, launch behavior, visual correctness, compatibility, and controlled performance benchmarks are verified. Particle section culling remains proposed; the new particle profiler is measurement instrumentation only and does not change rendering.
 
 
 ### D. Sodium-aware particle section culling
