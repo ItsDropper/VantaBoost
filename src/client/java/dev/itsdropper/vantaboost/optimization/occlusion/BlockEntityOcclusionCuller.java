@@ -6,8 +6,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -186,12 +186,9 @@ public final class BlockEntityOcclusionCuller {
         long queryStarted = BlockEntityOcclusionDiagnostics.ENABLED
                 ? System.nanoTime() : 0L;
         try {
-            Entity context = client.getCameraEntity();
-            if (context != null) {
-                occluded = hasOpaqueBlockPlaneOcclusion(
-                        level, context, cameraX, cameraY, cameraZ,
-                        minX, minY, minZ, maxX, maxY, maxZ);
-            }
+            occluded = hasOpaqueBlockPlaneOcclusion(
+                    level, cameraX, cameraY, cameraZ,
+                    minX, minY, minZ, maxX, maxY, maxZ);
         } catch (RuntimeException ignored) {
             // Raycast/world failures are uncertainty. Never hide a block entity.
             occluded = false;
@@ -226,7 +223,7 @@ public final class BlockEntityOcclusionCuller {
     }
 
     private static boolean hasOpaqueBlockPlaneOcclusion(
-            ClientLevel level, Entity context,
+            ClientLevel level,
             double cameraX, double cameraY, double cameraZ,
             double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ
@@ -238,7 +235,7 @@ public final class BlockEntityOcclusionCuller {
                 (minZ + maxZ) * 0.5);
         BlockHitResult hit = level.clip(new ClipContext(
                 cameraPosition, target,
-                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, context));
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
 
         if (hit.getType() != HitResult.Type.BLOCK
                 || hit.isInside() || hit.isWorldBorderHit()) {

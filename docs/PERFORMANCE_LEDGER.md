@@ -41,6 +41,26 @@ Record every investigated optimization, including rejected experiments. Compilat
 
 Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental entity and block-entity occlusion prototypes are implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
 
+### [VB-R23] Make occlusion raycasts independent of entity collision context
+
+- Status: Implemented — correctness hardening
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity and block-entity opaque-face raycasts
+- Relevant source paths: `EntityOcclusionCuller` and `BlockEntityOcclusionCuller`; Minecraft 1.21.11 `ClipContext` and `EntityCollisionContext`
+- Profile artifact and commit: Not applicable; this removes mutable entity-specific collision state from the occlusion proof.
+- Root cause: Entity raycasts passed the target entity as `ClipContext`'s collision context; block-entity raycasts passed the current camera entity. Minecraft 1.21.11's `EntityCollisionContext` derives collision behavior from mutable entity state including descending state, bottom Y, and held item. Positive cache entries do not include those values in their validity snapshot, so the same camera/world/bounds could reuse a proof produced under a different collision context.
+- Hypothesis: Using the singleton `CollisionContext.empty()` makes candidate-plane discovery deterministic and independent of the entity being culled or the active camera entity.
+- Proposed mechanism: Pass `CollisionContext.empty()` to both `ClipContext.Block.COLLIDER` raycasts and remove the now-unneeded entity-context parameters. Keep the existing vanilla-block-class and `BlockState.isSolidRender()` checks for the hit and every projected face cell; any missing/uncertain collider hit still fails open.
+- Expected metrics: No FPS claim. Avoid per-query entity-context dependence and remove the block-entity path's camera-entity lookup.
+- Correctness constraints: The ray only discovers a candidate plane; culling still requires every face cell in the projected coverage rectangle to be a vanilla solid-render block. A miss or invalid plane remains visible.
+- Compatibility risks: A collision shape that depends on an entity context may produce a different candidate ray hit. The final proof is based on the visual solid-render property, not entity collision behavior; unsupported/partial shapes fail open.
+- Benchmark scenarios and repetitions: Not applicable to this correctness fix; repeat entity/block-entity visual correctness gates after runtime validation.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: Build/tests and all four client mixin smoke configurations pending.
+- Rollback condition: Revert if a supported vanilla solid-render block's collider shape under the empty context cannot safely identify its visually opaque face.
+- Decision and rationale: Keep; occlusion geometry must not depend on mutable collision semantics of an unrelated entity.
+
 ### [VB-R22] Preserve sub-microsecond diagnostic timing precision
 
 - Status: Implemented — diagnostic reporting precision

@@ -12,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Leashable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -335,7 +336,7 @@ public final class EntityOcclusionCuller {
         long queryStarted = EntityOcclusionDiagnostics.ENABLED ? System.nanoTime() : 0L;
         try {
             occluded = hasOpaqueBlockPlaneOcclusion(
-                    level, entity, cameraX, cameraY, cameraZ,
+                    level, cameraX, cameraY, cameraZ,
                     minX, minY, minZ, maxX, maxY, maxZ);
         } catch (RuntimeException ignored) {
             // World/raycast failures are uncertainty. Never hide an entity.
@@ -419,7 +420,6 @@ public final class EntityOcclusionCuller {
 
     private static boolean hasOpaqueBlockPlaneOcclusion(
             ClientLevel level,
-            Entity entity,
             double cameraX, double cameraY, double cameraZ,
             double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ
@@ -434,7 +434,7 @@ public final class EntityOcclusionCuller {
                 target,
                 ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE,
-                entity));
+                CollisionContext.empty()));
 
         if (hit.getType() != HitResult.Type.BLOCK || hit.isInside() || hit.isWorldBorderHit()) {
             return false;
