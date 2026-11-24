@@ -38,6 +38,10 @@ public final class BlockEntityOcclusionCuller {
     private static final boolean UNSUPPORTED_RENDERER_LOADED = ENABLED
             && (FabricLoader.getInstance().isModLoaded("canvas")
                     || FabricLoader.getInstance().isModLoaded("entityculling"));
+    // Fabric's mod list is fixed after startup; cache this once instead of
+    // querying the loader during every block-entity extraction frame.
+    private static final boolean IRIS_LOADED = ENABLED && !UNSUPPORTED_RENDERER_LOADED
+            && FabricLoader.getInstance().isModLoaded("iris");
 
     private static final Map<BlockEntity, CacheEntry> CACHE = new WeakHashMap<>();
     private static WeakReference<ClientLevel> activeLevel = new WeakReference<>(null);
@@ -68,7 +72,7 @@ public final class BlockEntityOcclusionCuller {
         cameraY = cameraPosition.y;
         cameraZ = cameraPosition.z;
         irisShaderPackActive = IrisShaderPackCompatibility.isShaderPackActive(
-                FabricLoader.getInstance().isModLoaded("iris"),
+                IRIS_LOADED,
                 BlockEntityOcclusionCuller.class.getClassLoader());
     }
 

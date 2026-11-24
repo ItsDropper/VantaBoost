@@ -57,6 +57,10 @@ public final class EntityOcclusionCuller {
             && (FabricLoader.getInstance().isModLoaded("canvas")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
                     || FabricLoader.getInstance().isModLoaded("entity_model_features"));
+    // Fabric's mod list is fixed after startup; cache this once instead of
+    // querying the loader during every main entity-extraction frame.
+    private static final boolean IRIS_LOADED = ENABLED && !UNSUPPORTED_RENDERER_LOADED
+            && FabricLoader.getInstance().isModLoaded("iris");
     private static boolean irisShaderPackActive;
     private record RendererEligibility(
             boolean customNameTagPolicy,
@@ -366,7 +370,7 @@ public final class EntityOcclusionCuller {
         }
         mainEntityFrustum = frustum;
         irisShaderPackActive = IrisShaderPackCompatibility.isShaderPackActive(
-                FabricLoader.getInstance().isModLoaded("iris"),
+                IRIS_LOADED,
                 EntityOcclusionCuller.class.getClassLoader());
     }
 
