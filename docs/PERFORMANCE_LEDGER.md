@@ -41,7 +41,27 @@ Record every investigated optimization, including rejected experiments. Compilat
 
 Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental entity and block-entity occlusion prototypes are implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
 
-### [VB-R18] Report median latency alongside tail percentiles
+### [VB-R21] Clear extraction scopes on exceptional exits
+
+- Status: Implemented — correctness hardening
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity and block-entity extraction lifecycle
+- Relevant source paths: `LevelRendererEntityOcclusionMixin`, `LevelRendererBlockEntityOcclusionMixin`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`
+- Profile artifact and commit: Not applicable; this is a lifecycle/correctness fix.
+- Root cause: Both extraction scopes were opened at method HEAD and closed at RETURN. A thrown exception skips RETURN, leaving the static scope active until another matching extraction begins. If an upstream renderer catches the exception and continues with another pass using the same frustum/camera, the stale scope could permit culling outside the intended main extraction interval.
+- Hypothesis: A chainable MixinExtras `@WrapMethod` with `try/finally` guarantees scope cleanup on normal and exceptional exits.
+- Proposed mechanism: Wrap both exact 1.21.11 LevelRenderer extraction descriptors, call the original operation unchanged, and close the corresponding culler scope in `finally`. Count a diagnostic extraction frame only after the wrapped method returns normally.
+- Expected metrics: No performance claim. Prevent stale extraction state from affecting later render passes and keep diagnostic frame counts limited to completed extraction calls.
+- Correctness constraints: Preserve the original method arguments/return behavior, keep the scopes restricted to the exact vanilla extraction methods, and always clear state even if the original throws.
+- Compatibility risks: The wrapper must compose with other MixinExtras wrappers and the pinned MixinExtras 0.5.0 dependency; exact target descriptors must remain valid.
+- Benchmark scenarios and repetitions: Not applicable.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: CI build, JUnit tests, and all four headless client mixin smoke configurations pending.
+- Rollback condition: Revert if the wrapper cannot compose with supported renderer mixins or fails to apply on the exact 1.21.11 descriptors.
+- Decision and rationale: Keep; extraction scope state must be exception-safe because it gates whether entities and block entities may be hidden.
+
+### [VB-R20] Report median latency alongside tail percentiles
 
 - Status: Implemented — diagnostic improvement; performance unbenchmarked
 - Target Minecraft version: 1.21.11

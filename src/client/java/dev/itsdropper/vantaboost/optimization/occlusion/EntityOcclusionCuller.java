@@ -375,11 +375,14 @@ public final class EntityOcclusionCuller {
     }
 
     public static void endMainEntityExtraction(
-            net.minecraft.client.renderer.culling.Frustum frustum
+            net.minecraft.client.renderer.culling.Frustum frustum,
+            boolean completed
     ) {
         if (mainEntityFrustum == frustum) {
             mainEntityFrustum = null;
-            EntityOcclusionDiagnostics.onMainEntityExtractionFrame();
+            if (completed) {
+                EntityOcclusionDiagnostics.onMainEntityExtractionFrame();
+            }
         }
     }
 

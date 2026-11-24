@@ -76,10 +76,10 @@ public final class BlockEntityOcclusionCuller {
                 BlockEntityOcclusionCuller.class.getClassLoader());
     }
 
-    public static void endExtraction() {
+    public static void endExtraction(boolean completed) {
         boolean wasActive = extractionActive;
         extractionActive = false;
-        if (wasActive) {
+        if (wasActive && completed) {
             BlockEntityOcclusionDiagnostics.onExtractionFrame();
         }
     }
