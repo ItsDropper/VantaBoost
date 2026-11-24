@@ -15,13 +15,13 @@ public final class ParticleExtractionDiagnostics {
 
     private static final int REPORT_INTERVAL_EXTRACTIONS = 300;
 
-    private static long frameStartedNanos;
+    private static long extractionStartedNanos;
     private static long quadGroupStartedNanos;
-    private static long frameQuadGroupNanos;
-    private static long frameQuadGroups;
-    private static long frameParticleTests;
-    private static long frameFrustumVisible;
-    private static long frameFrustumRejected;
+    private static long extractionQuadGroupNanos;
+    private static long extractionQuadGroups;
+    private static long extractionParticleTests;
+    private static long extractionFrustumVisible;
+    private static long extractionFrustumRejected;
 
     private static long extractionCalls;
     private static long engineExtractionNanos;
@@ -35,32 +35,32 @@ public final class ParticleExtractionDiagnostics {
     private ParticleExtractionDiagnostics() {
     }
 
-    public static void beginFrame() {
+    public static void beginExtraction() {
         if (!ENABLED) {
             return;
         }
-        frameStartedNanos = System.nanoTime();
-        frameQuadGroupNanos = 0L;
-        frameQuadGroups = 0L;
-        frameParticleTests = 0L;
-        frameFrustumVisible = 0L;
-        frameFrustumRejected = 0L;
+        extractionStartedNanos = System.nanoTime();
+        extractionQuadGroupNanos = 0L;
+        extractionQuadGroups = 0L;
+        extractionParticleTests = 0L;
+        extractionFrustumVisible = 0L;
+        extractionFrustumRejected = 0L;
     }
 
-    public static void endFrame() {
+    public static void endExtraction() {
         if (!ENABLED) {
             return;
         }
 
-        long elapsed = Math.max(0L, System.nanoTime() - frameStartedNanos);
+        long elapsed = Math.max(0L, System.nanoTime() - extractionStartedNanos);
         extractionCalls++;
         engineExtractionNanos += elapsed;
         maximumEngineExtractionNanos = Math.max(maximumEngineExtractionNanos, elapsed);
-        quadGroupExtractionNanos += frameQuadGroupNanos;
-        quadGroups += frameQuadGroups;
-        particleTests += frameParticleTests;
-        frustumVisible += frameFrustumVisible;
-        frustumRejected += frameFrustumRejected;
+        quadGroupExtractionNanos += extractionQuadGroupNanos;
+        quadGroups += extractionQuadGroups;
+        particleTests += extractionParticleTests;
+        frustumVisible += extractionFrustumVisible;
+        frustumRejected += extractionFrustumRejected;
 
         if (extractionCalls < REPORT_INTERVAL_EXTRACTIONS) {
             return;
@@ -94,24 +94,24 @@ public final class ParticleExtractionDiagnostics {
         if (!ENABLED) {
             return;
         }
-        frameQuadGroups++;
+        extractionQuadGroups++;
         quadGroupStartedNanos = System.nanoTime();
     }
 
     public static void endQuadGroup() {
         if (ENABLED) {
-            frameQuadGroupNanos += Math.max(0L, System.nanoTime() - quadGroupStartedNanos);
+            extractionQuadGroupNanos += Math.max(0L, System.nanoTime() - quadGroupStartedNanos);
         }
     }
 
     /** Records the original vanilla frustum decision and returns it unchanged. */
     public static boolean recordFrustumResult(boolean vanillaVisible) {
         if (ENABLED) {
-            frameParticleTests++;
+            extractionParticleTests++;
             if (vanillaVisible) {
-                frameFrustumVisible++;
+                extractionFrustumVisible++;
             } else {
-                frameFrustumRejected++;
+                extractionFrustumRejected++;
             }
         }
         return vanillaVisible;
