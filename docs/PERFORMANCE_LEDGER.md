@@ -46,8 +46,8 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Status: Implemented — geometric correctness hardening
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity and block-entity opaque-face projection
-- Relevant source paths: `OcclusionSampling`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`; Minecraft `BlockHitResult.getLocation()` and `BlockState.isSolidRender()`
-- Profile artifact and commit: Not applicable; this narrows when a ray hit may seed the geometric proof.
+- Relevant source paths: `OcclusionSampling`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`; Minecraft [`HitResult.getLocation()`](https://github.com/H1lkaaaGD/Minecraft_1.21.11_Source/blob/main/net/minecraft/world/phys/HitResult.java) and [`BlockState.isSolidRender()`](https://github.com/H1lkaaaGD/Minecraft_1.21.11_Source/blob/main/net/minecraft/world/level/block/state/BlockBehaviour.java)
+- Profile artifact and commit: Not applicable; this narrows when a ray hit may seed the geometric proof. Implementation commit: [9ac3167](https://github.com/ItsDropper/VantaBoost/commit/9ac3167913fe5f6b18935eef76b1ac646c96df75); compile correction: [8031096](https://github.com/ItsDropper/VantaBoost/commit/80310964bf831707069c5a78ebae1140208cf1a5).
 - Root cause: `BlockState.isSolidRender()` describes the block's occlusion shape, while `ClipContext.Block.COLLIDER` intersects its collision shape. These shapes are not required to be identical. A partial collision shape can report an interior face, but the cullers previously converted the block position and face direction directly into an outer block-plane coordinate.
 - Hypothesis: Requiring the actual ray intersection coordinate to match the corresponding outer block face plane prevents an interior collision-shape face from being misinterpreted as a full opaque block face.
 - Proposed mechanism: Add `OcclusionSampling.isHitOnBlockFace`, with the existing plane epsilon, and call it in both cullers before projecting bounds. A hit more than epsilon from the outer block face fails open. Add deterministic tests for both face directions, tolerance boundaries, interior hits, non-finite coordinates, and invalid normals.
@@ -57,7 +57,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not applicable; visual correctness gate remains required.
 - Before/after distributions: None
 - Regressions: None known.
-- Validation evidence: Unit tests, build, and all four client mixin smoke configurations pending.
+- Validation evidence: [Run #45444946843](https://github.com/ItsDropper/VantaBoost/actions/runs/45444946843) exposed a duplicate local declaration in the block-entity face scan after introducing the shared coordinate check. The follow-up reused the already-computed coordinate; [run #45445201336](https://github.com/ItsDropper/VantaBoost/actions/runs/45445201336) passed Gradle build/tests, all four client mixin smoke configurations, and JAR upload.
 - Rollback condition: Revert only if a supported vanilla full-block collider reports legitimate outer-face hits outside the epsilon on the target version.
 - Decision and rationale: Keep; an interior collision-shape surface is not the outer visual occluder plane assumed by the projection proof.
 
