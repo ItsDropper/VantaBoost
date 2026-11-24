@@ -65,12 +65,12 @@ public abstract class ClientSmokeTestMixin {
             boolean particleProfilerEnabled = Boolean.getBoolean("vantaboost.profileParticleExtraction");
             boolean anyOcclusionEnabled = entityOcclusionEnabled || blockEntityOcclusionEnabled;
 
-            if (LivingEntityRendererNameTagInvoker.class.isAssignableFrom(livingRenderer)
-                    != entityOcclusionEnabled
-                    || MobRendererNameTagInvoker.class.isAssignableFrom(mobRenderer)
-                    != entityOcclusionEnabled) {
-                throw new IllegalStateException("Entity name-tag invoker application did not match feature state");
-            }
+            assertInterface(livingRenderer,
+                    "dev.itsdropper.vantaboost.mixin.LivingEntityRendererNameTagInvoker",
+                    entityOcclusionEnabled);
+            assertInterface(mobRenderer,
+                    "dev.itsdropper.vantaboost.mixin.MobRendererNameTagInvoker",
+                    entityOcclusionEnabled);
 
             assertHandler(entityRenderer, "vantaboost$applyEntityOcclusion", entityOcclusionEnabled);
             assertHandler(clientLevel, "vantaboost$invalidateAfterBlockChange", anyOcclusionEnabled);
@@ -95,6 +95,30 @@ public abstract class ClientSmokeTestMixin {
         }
 
         ((Minecraft) (Object) this).stop();
+    }
+
+    @Unique
+    private static void assertInterface(Class<?> target, String interfaceName, boolean expected) {
+        boolean present = implementsInterfaceNamed(target, interfaceName);
+        if (present != expected) {
+            throw new IllegalStateException(
+                    "Mixin interface application state did not match feature state for "
+                            + target.getName() + ": " + interfaceName);
+        }
+    }
+
+    @Unique
+    private static boolean implementsInterfaceNamed(Class<?> type, String interfaceName) {
+        if (type == null) {
+            return false;
+        }
+        for (Class<?> implemented : type.getInterfaces()) {
+            if (implemented.getName().equals(interfaceName)
+                    || implementsInterfaceNamed(implemented, interfaceName)) {
+                return true;
+            }
+        }
+        return implementsInterfaceNamed(type.getSuperclass(), interfaceName);
     }
 
     @Unique
