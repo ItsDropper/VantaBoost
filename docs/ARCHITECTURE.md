@@ -94,7 +94,7 @@ Do not create a mixin configuration just to reserve a directory. For each future
 - Particle extraction diagnostics mixins are applied only when `vantaboost.profileParticleExtraction=true`.
 - The CI smoke-test mixin is applied only when `vantaboost.ciSmoke=true`.
 
-A normal launch with experimental features disabled therefore has no entity/block-entity culling wrappers, per-particle profiler callback, or CI-only tick probe installed. These are startup flags; changing them requires restarting Minecraft. CI exercises both the fully enabled mixin set and the default-disabled set.
+A normal launch with experimental features disabled therefore has no entity/block-entity culling wrappers, per-particle profiler callback, or CI-only tick probe installed. These are startup flags; changing them requires restarting Minecraft. CI exercises the fully enabled, entity-only, block-entity-only, and default-disabled mixin sets.
 
 ## Target toolchain
 

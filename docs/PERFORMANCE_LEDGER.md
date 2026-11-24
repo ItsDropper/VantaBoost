@@ -271,7 +271,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Target Minecraft version: 1.21.11
 - Subsystem: Mixin startup and optional feature activation
 - Relevant source paths: `VantaBoostMixinPlugin`, `ClientSmokeTestMixin`, and the entity/block-entity occlusion mixins
-- Profile artifact and commit: None; implementation commits [a475e5e](https://github.com/ItsDropper/VantaBoost/commit/a475e5e3bbe9a51570d237c1df0f5e812448706c), [e23309a](https://github.com/ItsDropper/VantaBoost/commit/e23309ad2db70785ff2988b2b6d6eea9f6bc97e9), [913d523](https://github.com/ItsDropper/VantaBoost/commit/913d523bd1a34442dced6d900e551fd9fc4ab03e), and [0378631](https://github.com/ItsDropper/VantaBoost/commit/03786315fb9d6464f0742c0cefd3f7a77f1801e9)
+- Profile artifact and commit: None; implementation commits [a475e5e](https://github.com/ItsDropper/VantaBoost/commit/a475e5e3bbe9a51570d237c1df0f5e812448706c), [e23309a](https://github.com/ItsDropper/VantaBoost/commit/e23309ad2db70785ff2988b2b6d6eea9f6bc97e9), [913d523](https://github.com/ItsDropper/VantaBoost/commit/913d523bd1a34442dced6d900e551fd9fc4ab03e), [0378631](https://github.com/ItsDropper/VantaBoost/commit/03786315fb9d6464f0742c0cefd3f7a77f1801e9), and [03153ef](https://github.com/ItsDropper/VantaBoost/commit/03153ef682d22e4280ee9ba321d496b8dea0aaca)
 - Measured baseline cost: Unknown; no runtime capture exists.
 - Root cause: Experimental culling wrappers, shared invalidation hooks, and the CI-only tick probe were registered even when their features were disabled.
 - Hypothesis: Applying only the mixins required by enabled startup properties removes unnecessary transformed handlers from normal launches.
@@ -282,7 +282,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not run; this is a startup/disabled-overhead reduction rather than a claimed rendering optimization.
 - Before/after distributions: None
 - Regressions: The first disabled-mode smoke exposed an illegal direct reference to an optional mixin interface. The probe now checks transformed interface names without loading mixin classes directly.
-- Validation evidence: [Run #45426844973](https://github.com/ItsDropper/VantaBoost/actions/runs/45426844973) passed build/tests, enabled-feature smoke, default-disabled smoke, and JAR upload.
+- Validation evidence: [Run #45428832038](https://github.com/ItsDropper/VantaBoost/actions/runs/45428832038) passed build/tests, full-enabled, entity-only, block-entity-only, and default-disabled mixin smoke tests, plus JAR upload.
 - Rollback condition: Revert if any required enabled mixin is omitted or any disabled optional mixin remains applied.
 - Decision and rationale: Keep; optional features should not impose injected runtime work when they are not enabled.
 
