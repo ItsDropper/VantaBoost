@@ -33,6 +33,18 @@ Collect frame-time distributions (median, p95, p99, 1% and 0.1% lows), average F
 
 Distinguish CPU command submission from GPU execution. Do not add blocking GPU readbacks or synchronization to normal gameplay.
 
+## Particle extraction diagnostic mode
+
+Start Minecraft with:
+
+```text
+-Dvantaboost.profileParticleExtraction=true
+```
+
+Every 300 calls to `ParticleEngine.extract`, the profiler reports total particle-engine extraction time, quad-particle-group extraction time, quad groups processed, and average per-frame counts of quad-particle frustum candidates, accepted particles, and rejected particles. The visibility expression is returned unchanged; this is measurement instrumentation, not a culling optimization.
+
+Use it to establish whether quad-particle extraction is a material part of the render-thread budget in a particle-heavy scene. The timer adds overhead, so disable the property for final frame-time/JFR comparisons. The report covers the `QuadParticleGroup` path; item-pickup and elder-guardian particle groups are separate paths and are not included in its per-particle counters.
+
 ## Entity occlusion diagnostic mode
 
 The experimental culler exposes opt-in counters. Start Minecraft with:

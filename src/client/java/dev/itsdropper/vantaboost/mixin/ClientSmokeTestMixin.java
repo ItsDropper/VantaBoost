@@ -35,6 +35,8 @@ public abstract class ClientSmokeTestMixin {
             Class.forName("net.minecraft.client.multiplayer.ClientLevel", false, classLoader);
             Class.forName("net.minecraft.client.renderer.LevelRenderer", false, classLoader);
             Class.forName("net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
+            Class.forName("net.minecraft.client.particle.ParticleEngine", false, classLoader);
+            Class.forName("net.minecraft.client.particle.QuadParticleGroup", false, classLoader);
 
             Class<?> livingRenderer = Class.forName(
                     "net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader);
@@ -48,6 +50,10 @@ public abstract class ClientSmokeTestMixin {
                     "net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
             Class<?> levelRenderer = Class.forName(
                     "net.minecraft.client.renderer.LevelRenderer", false, classLoader);
+            Class<?> particleEngine = Class.forName(
+                    "net.minecraft.client.particle.ParticleEngine", false, classLoader);
+            Class<?> quadParticleGroup = Class.forName(
+                    "net.minecraft.client.particle.QuadParticleGroup", false, classLoader);
 
             if (!LivingEntityRendererNameTagInvoker.class.isAssignableFrom(livingRenderer)
                     || !MobRendererNameTagInvoker.class.isAssignableFrom(mobRenderer)) {
@@ -66,6 +72,11 @@ public abstract class ClientSmokeTestMixin {
             assertMergedHandler(levelRenderer, "vantaboost$endMainEntityExtraction");
             assertMergedHandler(levelRenderer, "vantaboost$beginBlockEntityExtraction");
             assertMergedHandler(levelRenderer, "vantaboost$endBlockEntityExtraction");
+            assertMergedHandler(particleEngine, "vantaboost$beginParticleExtraction");
+            assertMergedHandler(particleEngine, "vantaboost$endParticleExtraction");
+            assertMergedHandler(quadParticleGroup, "vantaboost$beginQuadParticleExtraction");
+            assertMergedHandler(quadParticleGroup, "vantaboost$endQuadParticleExtraction");
+            assertMergedHandler(quadParticleGroup, "vantaboost$recordParticleFrustumResult");
         } catch (ClassNotFoundException exception) {
             throw new IllegalStateException("Could not load VantaBoost mixin smoke-test targets", exception);
         }

@@ -11,6 +11,8 @@
     "LevelRendererBlockEntityOcclusionMixin",
     "BlockEntityRenderDispatcherOcclusionMixin",
     "ClientLevelOcclusionMixin",
+    "ParticleEngineDiagnosticsMixin",
+    "QuadParticleGroupDiagnosticsMixin",
     "ClientSmokeTestMixin"
   ],
   "injectors": {
