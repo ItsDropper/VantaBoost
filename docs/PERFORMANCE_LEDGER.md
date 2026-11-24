@@ -235,7 +235,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Expected metrics: Lower CPU time in the Iris-enabled entity-occlusion frame setup path. No numerical improvement is claimed.
 - Correctness constraints: Active shader packs and unknown API states must continue to disable entity occlusion. No hard Iris dependency may be introduced.
 - Compatibility risks: Iris API method visibility/signature changes; failures must remain fail-open.
-- Implementation commit: Pending.
+- Implementation commits: [2ce93a5](https://github.com/ItsDropper/VantaBoost/commit/2ce93a5fb97fbc7d80eff74e9b6a53c0b466a546) (implementation) and [66f19d2](https://github.com/ItsDropper/VantaBoost/commit/66f19d2f806ab7bf5fadf29e129571012bbb7711) (Java multi-catch correction).
 - Benchmark scenarios and repetitions: Not run. Required: compare entity-extraction frame setup with Iris loaded and no shader pack, then with a shader pack active, before/after the cache; verify the active-pack path never enables culling.
 - Before/after distributions: None
 - Regressions: Unknown
