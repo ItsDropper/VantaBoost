@@ -120,6 +120,6 @@ tasks.named("check") {
 tasks.matching { it.name == "runClient" }.configureEach {
     if (providers.gradleProperty("vantaboostCiSmoke").isPresent()) {
         useXvfb.set(true)
-        jvmArgs "-Dvantaboost.ciSmoke=true"
+        jvmArgs "-Dvantaboost.ciSmoke=true", "-Dvantaboost.profileParticleExtraction=true"
     }
 }

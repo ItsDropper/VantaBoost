@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "dev.itsdropper.vantaboost.mixin",
+  "plugin": "dev.itsdropper.vantaboost.mixin.VantaBoostMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityRendererOcclusionMixin",
