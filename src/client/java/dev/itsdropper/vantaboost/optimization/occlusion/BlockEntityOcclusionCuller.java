@@ -283,8 +283,6 @@ public final class BlockEntityOcclusionCuller {
             BlockEntityOcclusionDiagnostics.recordFaceCellsPlanned((int) (width * height));
         }
 
-        int fixedBlockCoordinate = axis == 0 ? hitBlock.getX()
-                : axis == 1 ? hitBlock.getY() : hitBlock.getZ();
         BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
         for (long u = FACE_CELL_RANGE[0]; u <= FACE_CELL_RANGE[1]; u++) {
             for (long v = FACE_CELL_RANGE[2]; v <= FACE_CELL_RANGE[3]; v++) {
