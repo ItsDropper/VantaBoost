@@ -56,6 +56,10 @@ public abstract class ClientSmokeTestMixin {
 
             assertMergedHandler(entityRenderer, "vantaboost$applyEntityOcclusion");
             assertMergedHandler(clientLevel, "vantaboost$invalidateAfterBlockChange");
+            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterVerifiedBlockState");
+            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterPredictedBlockState");
+            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterSectionActivation");
+            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterChunkLoad");
             assertMergedHandler(clientLevel, "vantaboost$invalidateAfterChunkUnload");
             assertMergedHandler(blockEntityDispatcher, "vantaboost$applyBlockEntityOcclusion");
             assertMergedHandler(levelRenderer, "vantaboost$beginMainEntityExtraction");
