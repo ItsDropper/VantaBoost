@@ -199,6 +199,28 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Rollback condition: Do not enable by default; disable the integration if any particle disappears while its billboard intersects a visible section or if added query overhead exceeds saved extraction work.
 - Decision and rationale: Research candidate only. Do not implement until the vanilla particle subclass bounds are audited and a particle-heavy baseline demonstrates a meaningful render-thread cost.
 
+### [VB-R11] Disabled occlusion dispatch fast path
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity and block-entity visibility filtering
+- Relevant source paths: `EntityRendererOcclusionMixin`, `BlockEntityRenderDispatcherOcclusionMixin`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`
+- Profile artifact and commit: None; implementation commit [47e3ae7](https://github.com/ItsDropper/VantaBoost/commit/47e3ae76bbb1db6a0d53852252d4a62bfd2ea5c4)
+- Measured baseline cost: Unknown; no runtime capture exists.
+- Root cause: Both occlusion features are opt-in and disabled by default, but their wrappers still entered VantaBoost-specific dispatch on vanilla-visible candidates. The entity wrapper additionally evaluated renderer/name-tag eligibility before the culler rejected the disabled feature.
+- Hypothesis: Checking the startup enable flag immediately after the original vanilla visibility operation avoids all VantaBoost-specific eligibility and culler work when the feature is disabled, without changing the original renderer result.
+- Proposed mechanism: Expose the immutable startup enable state from each culler; short-circuit the entity and block-entity wrappers before calling any culling policy; retain a defensive early return in the entity culler API.
+- Expected metrics: Lower render-thread CPU work in entity-heavy and block-entity-heavy scenes with both features disabled. No numerical improvement is claimed.
+- Correctness constraints: Always invoke the wrapped vanilla/third-party operation exactly once and return its result unchanged when the feature is disabled. Preserve the existing enabled path.
+- Compatibility risks: MixinExtras wrapper composition and call ordering; the wrapped operation must remain first so other renderer integrations are preserved.
+- Implementation commit: [47e3ae7](https://github.com/ItsDropper/VantaBoost/commit/47e3ae76bbb1db6a0d53852252d4a62bfd2ea5c4)
+- Benchmark scenarios and repetitions: Not run. Required: identical entity-dense and village/block-entity scenes with both properties omitted, comparing the parent commit and implementation commit using render-thread JFR and frame-time distributions; repeat with each culler enabled to ensure the enabled path is unchanged.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: Source diff confirms short-circuit ordering and unchanged wrapped-operation result. GitHub Actions validation is pending for the implementation commit; no local build or runtime benchmark was performed.
+- Rollback condition: Revert if disabled-mode rendering differs from vanilla/third-party behavior or if controlled measurements show no benefit and the guard creates measurable overhead.
+- Decision and rationale: Keep as a narrow disabled-path optimization candidate. It is not performance-accepted until runtime correctness and controlled measurements are complete.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.
