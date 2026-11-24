@@ -177,6 +177,28 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 
 ---
 
+### [VB-R10] Sodium-aware particle section culling
+
+- Status: Proposed — source-level mechanism inspected; not implemented
+- Target Minecraft version: 1.21.11
+- Subsystem: Particle render-state extraction
+- Relevant source: Minecraft `QuadParticleGroup.extractRenderState`; Polydium `MixinParticleSectionCull` at commit `a9ac437`; Sodium `SodiumWorldRenderer.isBoxVisible`, `RenderSectionManager.isBoxVisible`, and `SectionTree.isBoxVisible` at commit `3a99e4e`
+- Profile artifact and commit: None
+- Measured baseline cost: Unknown; no particle-heavy VantaBoost profile exists
+- Root cause: Vanilla checks `Frustum.pointInFrustum` for each `SingleQuadParticle` before calling its extraction method, but does not additionally use Sodium's already-computed section-occlusion visibility graph for that particle position.
+- Hypothesis: For particles in non-empty sections that Sodium's visibility graph currently considers hidden, a second conservative visibility predicate can reject the particle before quad extraction and downstream submission.
+- Proposed mechanism: When Sodium is present, preserve the existing vanilla frustum result and consult the public `SodiumWorldRenderer.isBoxVisible` API for the particle's section position. Fail open if Sodium or its render tree is unavailable. Cache only positive section-visible results for the current tick; do not cache hidden results. Compose with the existing MixinExtras expression value so Particle Core's existing wrapper is not replaced or duplicated.
+- Expected metrics: Fewer `SingleQuadParticle.extract` calls and less particle render-state/vertex submission in particle-heavy scenes behind occluded terrain; extra per-particle section-visibility work may outweigh savings at low particle counts.
+- Correctness constraints: Preserve the vanilla frustum result; treat empty, unloaded, out-of-height, null-render-tree, and uncertain sections as visible. Audit vanilla quad sizes because `SingleQuadParticle.getQuadSize(partialTick)` is not guaranteed to match the base `Particle` AABB. Unknown/custom particle subclasses fail open until their render envelopes are proven.
+- Compatibility risks: Sodium API/version drift; Particle Core wraps the same frustum expression; custom particle renderers and large billboard particles; stale/rebuilding Sodium visibility graphs.
+- Implementation commit: None
+- Benchmark scenarios and repetitions: Not run. Required: particle-heavy scene with many particles in hidden non-empty sections, ordinary gameplay control, and particles in empty/unloaded sections; compare Sodium visibility culling on/off with profiling disabled for final frame-time measurements.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: Source inspection confirms the early extraction gate in Minecraft 1.21.11 and the section-visibility semantics in the inspected Sodium source. Detailed analysis and implementation gate are in [RESEARCH.md](RESEARCH.md#d-sodium-aware-particle-section-culling). This is not runtime or benchmark evidence.
+- Rollback condition: Do not enable by default; disable the integration if any particle disappears while its billboard intersects a visible section or if added query overhead exceeds saved extraction work.
+- Decision and rationale: Research candidate only. Do not implement until the vanilla particle subclass bounds are audited and a particle-heavy baseline demonstrates a meaningful render-thread cost.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.
