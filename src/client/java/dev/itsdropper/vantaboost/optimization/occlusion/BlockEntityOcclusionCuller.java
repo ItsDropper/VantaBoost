@@ -32,9 +32,9 @@ public final class BlockEntityOcclusionCuller {
     private static final int MAX_FACE_CELLS = 16;
     private static final double[] PROJECTED_FACE_BOUNDS = new double[4];
     private static final int[] FACE_CELL_RANGE = new int[4];
-    private static final boolean ENABLED =
-            Boolean.getBoolean("vantaboost.enableBlockEntityOcclusion")
-                    && !Boolean.getBoolean("vantaboost.disableBlockEntityOcclusion");
+    private static final boolean ENABLED = OcclusionFeaturePolicy.isEnabled(
+            Boolean.getBoolean("vantaboost.enableBlockEntityOcclusion"),
+            Boolean.getBoolean("vantaboost.disableBlockEntityOcclusion"));
     private static final boolean UNSUPPORTED_RENDERER_LOADED =
             FabricLoader.getInstance().isModLoaded("canvas")
                     || FabricLoader.getInstance().isModLoaded("entityculling");
