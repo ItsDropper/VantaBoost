@@ -47,7 +47,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity, block-entity, and particle extraction diagnostics
 - Relevant source paths: `EntityOcclusionDiagnostics`, `BlockEntityOcclusionDiagnostics`, and `ParticleExtractionDiagnostics`
-- Profile artifact and commit: None; this changes only opt-in diagnostic units.
+- Profile artifact and commit: None; this changes only opt-in diagnostic units. Implementation commit: [229bc4b](https://github.com/ItsDropper/VantaBoost/commit/229bc4b4b545ef7096c1bc661d2c007943ace59c); percentile-unit correction: [1315b6e](https://github.com/ItsDropper/VantaBoost/commit/1315b6e3a36744a4e6ad5255125bc4f135f6f926).
 - Root cause: Latencies were stored in nanoseconds but integer-divided by 1,000 before logging. Any p50/p95/p99 or average below one microsecond appeared as zero, hiding measurable sub-microsecond work.
 - Hypothesis: Reporting raw nanoseconds retains the full resolution of `System.nanoTime()` deltas and makes the fixed histogram's upper bounds useful for fast candidate paths.
 - Proposed mechanism: Keep accumulated values and histogram bucket bounds in nanoseconds through formatting; label every latency field with `ns` and document the unit. Count fields remain unchanged.
@@ -57,7 +57,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not applicable; measurement display precision only.
 - Before/after distributions: None
 - Regressions: None known.
-- Validation evidence: CI build/tests and all four mixin smoke configurations pending.
+- Validation evidence: [Run #45443003391](https://github.com/ItsDropper/VantaBoost/actions/runs/45443003391) passed Gradle build/tests, full-enabled, entity-only, block-entity-only, and default-disabled client smoke tests, plus JAR upload.
 - Rollback condition: Revert if consumers require the prior microsecond-formatted fields or nanosecond values are misinterpreted.
 - Decision and rationale: Keep; integer microsecond truncation erased the small timing differences these diagnostic histograms were added to expose.
 
@@ -67,7 +67,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity and block-entity extraction lifecycle
 - Relevant source paths: `LevelRendererEntityOcclusionMixin`, `LevelRendererBlockEntityOcclusionMixin`, `ClientSmokeTestMixin`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`
-- Profile artifact and commit: Not applicable; this is a lifecycle/correctness fix.
+- Profile artifact and commit: Not applicable; this is a lifecycle/correctness fix. Implementation commit: [1343020](https://github.com/ItsDropper/VantaBoost/commit/1343020fd0ce80ecfb3db6098de8e630c15c8cc4); smoke-probe correction: [6c8055e](https://github.com/ItsDropper/VantaBoost/commit/6c8055e476d830e9754663faea64362c6a1b861c).
 - Root cause: Both extraction scopes were opened at method HEAD and closed at RETURN. A thrown exception skips RETURN, leaving the static scope active until another matching extraction begins. If an upstream renderer catches the exception and continues with another pass using the same frustum/camera, the stale scope could permit culling outside the intended main extraction interval.
 - Hypothesis: A chainable MixinExtras `@WrapMethod` with `try/finally` guarantees scope cleanup on normal and exceptional exits.
 - Proposed mechanism: Wrap both exact 1.21.11 LevelRenderer extraction descriptors, call the original operation unchanged, and close the corresponding culler scope in `finally`. Count a diagnostic extraction frame only after the wrapped method returns normally.
@@ -87,7 +87,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Target Minecraft version: 1.21.11
 - Subsystem: Opt-in entity, block-entity, and particle extraction diagnostics
 - Relevant source paths: `EntityOcclusionDiagnostics`, `BlockEntityOcclusionDiagnostics`, `ParticleExtractionDiagnostics`, and `NanoHistogram`
-- Profile artifact and commit: None; this changes only opt-in diagnostic reporting.
+- Profile artifact and commit: None; this changes only opt-in diagnostic reporting. Implementation commit: [da1cd7f](https://github.com/ItsDropper/VantaBoost/commit/da1cd7f2019e5ca606d6647e759be98d6ed9ad75).
 - Root cause: Diagnostic summaries reported average, p95, p99, and maximum latency, but omitted the median. Averages can be skewed by occasional slow samples and tail percentiles alone do not describe the typical operation.
 - Hypothesis: Reporting the fixed histogram's p50 upper bound gives a compact typical-latency measure alongside p95/p99 without recording individual samples or allocating per sample.
 - Proposed mechanism: Query the existing 64-bucket logarithmic histograms at the 50th percentile for culler, query, particle-engine, and quad-group timings; document the additional fields.
