@@ -350,6 +350,26 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Rollback condition: Revert only if supported Iris versions are observed to throw transiently and require automatic recovery during the same process.
 - Decision and rationale: Keep; fail-open compatibility failures should not generate repeated reflective work on every frame.
 
+### [VB-R17] Fail closed when renderer reflection cannot resolve signatures
+
+- Status: Implemented — compatibility hardening
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity renderer eligibility detection
+- Relevant source path: `RendererOverridePolicy`
+- Profile artifact and commit: Not applicable; this is a correctness/compatibility guard.
+- Root cause: Renderer inspection catches `SecurityException` only. Java reflection can also throw linkage or runtime failures when optional types referenced by a modded renderer's method signatures cannot be resolved.
+- Hypothesis: Treating every reflection inspection failure as an unsafe renderer prevents an optional/modded renderer from crashing entity extraction or being incorrectly accepted for occlusion.
+- Proposed mechanism: Catch `LinkageError` and `RuntimeException` around declared-method and parameter-type inspection, and return the existing fail-closed result.
+- Expected metrics: No performance claim. The change only affects renderer classes whose reflection inspection fails.
+- Correctness constraints: Any uncertain renderer must remain visible; do not swallow fatal VM errors outside the narrowly scoped reflection operation.
+- Compatibility risks: A renderer with an unusual signature that cannot be inspected will be excluded from occlusion, reducing culling opportunities rather than correctness.
+- Benchmark scenarios and repetitions: Not applicable.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: CI build, unit tests, and all four mixin launch smoke paths pending.
+- Rollback condition: Revert only if the broader catch masks a recoverable condition needed for supported renderer inspection; visible fallback is intentional.
+- Decision and rationale: Keep; compatibility uncertainty must disable culling, not crash the render path.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.

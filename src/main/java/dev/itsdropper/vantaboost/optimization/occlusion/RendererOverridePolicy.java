@@ -33,8 +33,9 @@ final class RendererOverridePolicy {
                         return true;
                     }
                 }
-            } catch (SecurityException ignored) {
-                // Inability to inspect a renderer must fail closed.
+            } catch (LinkageError | RuntimeException ignored) {
+                // Missing optional signature types, denied reflection, or other
+                // inspection failures make the renderer unsafe to cull.
                 return true;
             }
         }
@@ -57,8 +58,9 @@ final class RendererOverridePolicy {
                         return true;
                     }
                 }
-            } catch (SecurityException ignored) {
-                // Inability to inspect a renderer must fail closed.
+            } catch (LinkageError | RuntimeException ignored) {
+                // Missing optional signature types, denied reflection, or other
+                // inspection failures make the renderer unsafe to cull.
                 return true;
             }
         }
