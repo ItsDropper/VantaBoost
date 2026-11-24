@@ -239,7 +239,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not run. Required: compare entity-extraction frame setup with Iris loaded and no shader pack, then with a shader pack active, before/after the cache; verify active-pack and API-failure paths never enable culling.
 - Before/after distributions: None
 - Regressions: Unknown
-- Validation evidence: [Run #45425081341](https://github.com/ItsDropper/VantaBoost/actions/runs/45425081341) passed build/tests, mixin smoke, and JAR upload. The fixture verifies singleton discovery occurs once while shader-pack state is queried each frame; the runtime-failure assertion is included in the next validation run.
+- Validation evidence: [Run #45425081341](https://github.com/ItsDropper/VantaBoost/actions/runs/45425081341) passed build/tests, mixin smoke, and JAR upload. [Run #45427657074](https://github.com/ItsDropper/VantaBoost/actions/runs/45427657074) passed the expanded test suite, including singleton discovery once, per-frame shader-pack state queries, and fail-open behavior when the optional Iris API throws; both enabled and default-disabled client smoke tests and JAR upload also passed.
 - Rollback condition: Revert if Iris versions fail to resolve correctly, active shader packs do not reliably fail open, or profiling shows no benefit and the cache adds complexity.
 - Decision and rationale: Keep as a narrow compatibility-path overhead reduction, not a performance-accepted optimization.
 
