@@ -367,7 +367,8 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Before/after distributions: None
 - Regressions: None known.
 - Implementation commit: [2cea488](https://github.com/ItsDropper/VantaBoost/commit/2cea4881a53b1d5708eb1ce8f548c5ef437b0031).
-- Validation evidence: [Run #45436873456](https://github.com/ItsDropper/VantaBoost/actions/runs/45436873456) passed build/tests, all four client mixin smoke configurations, and JAR upload. The isolated-classloader regression test for unresolved optional signature types is added in the current revision and is pending CI.
+- Regression test commits: [93ff07a](https://github.com/ItsDropper/VantaBoost/commit/93ff07aa6945cbb8518fe3afb9b9bd4160323287) and [db19720](https://github.com/ItsDropper/VantaBoost/commit/db197209cb037a7c5425e0b89c051bca3c86db6e).
+- Validation evidence: [Run #45438687366](https://github.com/ItsDropper/VantaBoost/actions/runs/45438687366) passed build/tests, the isolated-classloader test proving unresolved method-signature types throw a linkage error, all four client mixin smoke configurations, and JAR upload.
 - Rollback condition: Revert only if the broader catch masks a recoverable condition needed for supported renderer inspection; visible fallback is intentional.
 - Decision and rationale: Keep; compatibility uncertainty must disable culling, not crash the render path.
 
@@ -377,7 +378,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity and block-entity occlusion diagnostics
 - Relevant source paths: `NanoHistogram`, `EntityOcclusionDiagnostics`, and `BlockEntityOcclusionDiagnostics`
-- Profile artifact: None; diagnostic implementation commits [ca07864](https://github.com/ItsDropper/VantaBoost/commit/ca0786441d9fe9ada39dfeb6aa2338532a250101) and [7adb241](https://github.com/ItsDropper/VantaBoost/commit/7adb2411449ca49d98d556737862ad40696480ce); this adds measurement resolution, not a performance optimization.
+- Profile artifact: None; diagnostic implementation commits [ca07864](https://github.com/ItsDropper/VantaBoost/commit/ca0786441d9fe9ada39dfeb6aa2338532a250101), [7adb241](https://github.com/ItsDropper/VantaBoost/commit/7adb2411449ca49d98d556737862ad40696480ce), and [a6247e8](https://github.com/ItsDropper/VantaBoost/commit/a6247e8b1b01142eeda7676f06d71a39928422cc); histogram boundary test commit [14f5932](https://github.com/ItsDropper/VantaBoost/commit/14f59321a9abf2a092c60a04d41a2156bb7da988). This adds measurement resolution, not a performance optimization.
 - Root cause: Diagnostic reports exposed average and maximum candidate/query duration only. Averages hide tail latency, while a single maximum is highly sensitive to one-off scheduling pauses.
 - Hypothesis: Fixed-memory logarithmic histograms can report approximate p95/p99 upper bounds for candidate and query durations without allocating per sample.
 - Proposed mechanism: Record timings in 64 power-of-two nanosecond buckets only when the corresponding opt-in profiler is enabled; report bucket upper bounds at each 300-frame interval and reset the histograms with the existing counters.
@@ -387,7 +388,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Use the existing entity-dense and village/block-entity diagnostic scenarios; repeat each 300-frame report at least five times before interpreting tails.
 - Before/after distributions: None; this improves instrumentation rather than changing the culling algorithm.
 - Regressions: Profiling-enabled runs perform a small fixed-array increment per timing sample. Histogram storage is allocated only when the corresponding profiler property is enabled; normal launches allocate no histogram arrays.
-- Validation evidence: [Run #45437262468](https://github.com/ItsDropper/VantaBoost/actions/runs/45437262468) passed the NanoHistogram unit tests, build, all four client mixin smoke configurations, and JAR upload. [Run #45437425053](https://github.com/ItsDropper/VantaBoost/actions/runs/45437425053) repeated the complete validation after changing histogram allocation so normal launches allocate no histogram arrays.
+- Validation evidence: [Run #45437262468](https://github.com/ItsDropper/VantaBoost/actions/runs/45437262468) passed the NanoHistogram unit tests, build, all four client mixin smoke configurations, and JAR upload. [Run #45437425053](https://github.com/ItsDropper/VantaBoost/actions/runs/45437425053) repeated validation after making histogram allocation opt-in. [Run #45439156805](https://github.com/ItsDropper/VantaBoost/actions/runs/45439156805) passed again after restricting the helper to package scope, and [run #45439282671](https://github.com/ItsDropper/VantaBoost/actions/runs/45439282671) included the Long.MAX_VALUE bucket-boundary test.
 - Rollback condition: Revert if profiling overhead becomes material or histogram output is mistaken for exact p95/p99 measurements.
 - Decision and rationale: Keep; tail latency is required to evaluate whether experimental culling work causes frame-time spikes.
 
