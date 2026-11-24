@@ -122,6 +122,14 @@ tasks.matching { it.name == "runClient" }.configureEach {
         useXvfb.set(true)
         jvmArgs "-Dvantaboost.ciSmoke=true", "-Dvantaboost.enableEntityOcclusion=true", "-Dvantaboost.enableBlockEntityOcclusion=true", "-Dvantaboost.profileParticleExtraction=true"
     }
+    if (providers.gradleProperty("vantaboostCiSmokeEntityOnly").isPresent()) {
+        useXvfb.set(true)
+        jvmArgs "-Dvantaboost.ciSmoke=true", "-Dvantaboost.enableEntityOcclusion=true"
+    }
+    if (providers.gradleProperty("vantaboostCiSmokeBlockOnly").isPresent()) {
+        useXvfb.set(true)
+        jvmArgs "-Dvantaboost.ciSmoke=true", "-Dvantaboost.enableBlockEntityOcclusion=true"
+    }
     if (providers.gradleProperty("vantaboostCiSmokeDisabled").isPresent()) {
         useXvfb.set(true)
         jvmArgs "-Dvantaboost.ciSmoke=true"

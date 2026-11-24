@@ -29,6 +29,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xvfb
       - name: Smoke-test client mixin application
         run: LIBGL_ALWAYS_SOFTWARE=1 timeout 300s gradle --no-daemon runClient -PvantaboostCiSmoke=true
+      - name: Smoke-test entity-only mixin path
+        run: LIBGL_ALWAYS_SOFTWARE=1 timeout 300s gradle --no-daemon runClient -PvantaboostCiSmokeEntityOnly=true
+      - name: Smoke-test block-entity-only mixin path
+        run: LIBGL_ALWAYS_SOFTWARE=1 timeout 300s gradle --no-daemon runClient -PvantaboostCiSmokeBlockOnly=true
       - name: Smoke-test default disabled mixin path
         run: LIBGL_ALWAYS_SOFTWARE=1 timeout 300s gradle --no-daemon runClient -PvantaboostCiSmokeDisabled=true
       - name: Upload JAR
