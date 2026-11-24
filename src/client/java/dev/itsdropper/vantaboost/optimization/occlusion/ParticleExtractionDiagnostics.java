@@ -13,7 +13,7 @@ public final class ParticleExtractionDiagnostics {
     public static final boolean ENABLED =
             Boolean.getBoolean("vantaboost.profileParticleExtraction");
 
-    private static final int REPORT_INTERVAL_FRAMES = 300;
+    private static final int REPORT_INTERVAL_EXTRACTIONS = 300;
 
     private static long frameStartedNanos;
     private static long quadGroupStartedNanos;
@@ -23,7 +23,7 @@ public final class ParticleExtractionDiagnostics {
     private static long frameFrustumVisible;
     private static long frameFrustumRejected;
 
-    private static long frames;
+    private static long extractionCalls;
     private static long engineExtractionNanos;
     private static long maximumEngineExtractionNanos;
     private static long quadGroupExtractionNanos;
@@ -53,7 +53,7 @@ public final class ParticleExtractionDiagnostics {
         }
 
         long elapsed = Math.max(0L, System.nanoTime() - frameStartedNanos);
-        frames++;
+        extractionCalls++;
         engineExtractionNanos += elapsed;
         maximumEngineExtractionNanos = Math.max(maximumEngineExtractionNanos, elapsed);
         quadGroupExtractionNanos += frameQuadGroupNanos;
@@ -67,20 +67,20 @@ public final class ParticleExtractionDiagnostics {
         }
 
         VantaBoost.LOGGER.info(
-                "Particle extraction profile over {} frames: avgEngine={}us, maxEngine={}us, "
+                "Particle extraction profile over {} extraction calls: avgEngine={}us, maxEngine={}us, "
                         + "avgQuadGroups={}/frame, avgQuadExtraction={}us/frame, "
                         + "quadCandidates={}/frame, frustumVisible={}/frame, "
                         + "frustumRejected={}/frame",
                 frames,
-                engineExtractionNanos / frames / 1_000L,
+                engineExtractionNanos / extractionCalls / 1_000L,
                 maximumEngineExtractionNanos / 1_000L,
-                (double) quadGroups / frames,
-                quadGroupExtractionNanos / frames / 1_000L,
-                (double) particleTests / frames,
-                (double) frustumVisible / frames,
-                (double) frustumRejected / frames);
+                (double) quadGroups / extractionCalls,
+                quadGroupExtractionNanos / extractionCalls / 1_000L,
+                (double) particleTests / extractionCalls,
+                (double) frustumVisible / extractionCalls,
+                (double) frustumRejected / extractionCalls);
 
-        frames = 0L;
+        extractionCalls = 0L;
         engineExtractionNanos = 0L;
         maximumEngineExtractionNanos = 0L;
         quadGroupExtractionNanos = 0L;
