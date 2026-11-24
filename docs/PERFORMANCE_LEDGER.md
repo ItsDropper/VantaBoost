@@ -221,6 +221,28 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Rollback condition: Revert if disabled-mode rendering differs from vanilla/third-party behavior or if controlled measurements show no benefit and the guard creates measurable overhead.
 - Decision and rationale: Keep as a narrow disabled-path optimization candidate. It is not performance-accepted until runtime correctness and controlled measurements are complete.
 
+### [VB-R12] Cache Iris shader-pack API resolution
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity-occlusion compatibility checks
+- Relevant source path: `IrisShaderPackCompatibility`
+- Profile artifact and commit: None; implementation commit is recorded below.
+- Measured baseline cost: Unknown; no runtime profile isolates Iris API lookup cost.
+- Root cause: The entity culler checks Iris once per main entity-extraction frame, but the compatibility helper repeated class lookup, method lookup, and singleton retrieval on every frame.
+- Hypothesis: Caching the Iris API instance and method after the first successful resolution removes repeated reflection discovery from the per-frame compatibility check while preserving the same shader-pack decision.
+- Proposed mechanism: Lazily resolve and cache the public Iris API on first use. Cache an unavailable sentinel on lookup/linkage/security failures and fail open; invoke the cached method on subsequent frames. Do not initialize or query Iris when the mod is absent.
+- Expected metrics: Lower CPU time in the Iris-enabled entity-occlusion frame setup path. No numerical improvement is claimed.
+- Correctness constraints: Active shader packs and unknown API states must continue to disable entity occlusion. No hard Iris dependency may be introduced.
+- Compatibility risks: Iris API method visibility/signature changes; failures must remain fail-open.
+- Implementation commit: Pending.
+- Benchmark scenarios and repetitions: Not run. Required: compare entity-extraction frame setup with Iris loaded and no shader pack, then with a shader pack active, before/after the cache; verify the active-pack path never enables culling.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: Source inspection confirms the repeated reflective discovery was in the once-per-frame call path. Build and runtime verification are pending.
+- Rollback condition: Revert if Iris versions fail to resolve correctly, active shader packs do not reliably fail open, or profiling shows no benefit and the cache adds complexity.
+- Decision and rationale: Keep as a narrow compatibility-path overhead reduction, not a performance-accepted optimization.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.
