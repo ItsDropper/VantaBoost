@@ -385,7 +385,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Compatibility risks: Percentiles are bucket upper bounds, not exact order statistics; the output labels and docs must make that approximation clear.
 - Benchmark scenarios and repetitions: Use the existing entity-dense and village/block-entity diagnostic scenarios; repeat each 300-frame report at least five times before interpreting tails.
 - Before/after distributions: None; this improves instrumentation rather than changing the culling algorithm.
-- Regressions: Profiling-enabled runs perform a small fixed-array increment per timing sample. Normal launches do not enable these diagnostic calls.
+- Regressions: Profiling-enabled runs perform a small fixed-array increment per timing sample. Histogram storage is allocated only when the corresponding profiler property is enabled; normal launches allocate no histogram arrays.
 - Validation evidence: Unit tests cover percentile rank, empty/reset behavior, negative-duration clamping, and invalid percentile rejection. CI pending.
 - Rollback condition: Revert if profiling overhead becomes material or histogram output is mistaken for exact p95/p99 measurements.
 - Decision and rationale: Keep; tail latency is required to evaluate whether experimental culling work causes frame-time spikes.

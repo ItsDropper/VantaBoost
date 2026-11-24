@@ -21,8 +21,8 @@ public final class EntityOcclusionDiagnostics {
     private static long candidateOcclusions;
     private static long cullerNanos;
     private static long maximumCullerNanos;
-    private static final NanoHistogram CULLER_LATENCY = new NanoHistogram();
-    private static final NanoHistogram QUERY_LATENCY = new NanoHistogram();
+    private static final NanoHistogram CULLER_LATENCY = ENABLED ? new NanoHistogram() : null;
+    private static final NanoHistogram QUERY_LATENCY = ENABLED ? new NanoHistogram() : null;
     private static long cacheHits;
     private static long cacheOcclusionHits;
     private static long budgetSkips;
