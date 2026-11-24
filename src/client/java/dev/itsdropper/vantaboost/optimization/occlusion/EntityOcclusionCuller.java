@@ -53,10 +53,10 @@ public final class EntityOcclusionCuller {
             Boolean.getBoolean("vantaboost.disableEntityOcclusion"));
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
-    private static final boolean UNSUPPORTED_RENDERER_LOADED =
-            FabricLoader.getInstance().isModLoaded("canvas")
+    private static final boolean UNSUPPORTED_RENDERER_LOADED = ENABLED
+            && (FabricLoader.getInstance().isModLoaded("canvas")
                     || FabricLoader.getInstance().isModLoaded("entityculling")
-                    || FabricLoader.getInstance().isModLoaded("entity_model_features");
+                    || FabricLoader.getInstance().isModLoaded("entity_model_features"));
     private static boolean irisShaderPackActive;
     private record RendererEligibility(
             boolean customNameTagPolicy,
