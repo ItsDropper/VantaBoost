@@ -1,7 +1,7 @@
 package dev.itsdropper.vantaboost.mixin;
 
-import net.minecraft.client.Minecraft;
 import dev.itsdropper.vantaboost.optimization.occlusion.OcclusionFeaturePolicy;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,15 +30,6 @@ public abstract class ClientSmokeTestMixin {
 
         ClassLoader classLoader = Minecraft.class.getClassLoader();
         try {
-            Class.forName("net.minecraft.client.renderer.entity.EntityRenderer", false, classLoader);
-            Class.forName("net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader);
-            Class.forName("net.minecraft.client.renderer.entity.MobRenderer", false, classLoader);
-            Class.forName("net.minecraft.client.multiplayer.ClientLevel", false, classLoader);
-            Class.forName("net.minecraft.client.renderer.LevelRenderer", false, classLoader);
-            Class.forName("net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
-            Class.forName("net.minecraft.client.particle.ParticleEngine", false, classLoader);
-            Class.forName("net.minecraft.client.particle.QuadParticleGroup", false, classLoader);
-
             Class<?> livingRenderer = Class.forName(
                     "net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader);
             Class<?> mobRenderer = Class.forName(
