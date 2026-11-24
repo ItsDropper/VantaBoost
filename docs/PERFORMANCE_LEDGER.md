@@ -308,6 +308,27 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Rollback condition: Revert if Iris versions fail to resolve correctly, active shader packs do not reliably fail open, or profiling shows no benefit and the cache adds complexity.
 - Decision and rationale: Keep as a narrow compatibility-path overhead reduction, not a performance-accepted optimization.
 
+### [VB-R15] Cache Iris mod presence at startup
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity and block-entity occlusion compatibility checks
+- Relevant source paths: `EntityOcclusionCuller` and `BlockEntityOcclusionCuller`
+- Profile artifact and commit: None; implementation commit [810c169](https://github.com/ItsDropper/VantaBoost/commit/810c169892e8258494530a598aa8f34094edf8e8)
+- Measured baseline cost: Unknown; no profile isolates FabricLoader lookup cost.
+- Root cause: Both extraction-start methods queried `FabricLoader.isModLoaded("iris")` on every frame even though the loaded mod set is fixed after startup.
+- Hypothesis: Caching the Iris-presence result once per culler removes a redundant loader lookup from each extraction frame.
+- Proposed mechanism: Initialize a static final `IRIS_LOADED` only when that culler is enabled and no unsupported renderer has disabled it; pass the cached value to the Iris compatibility helper. This follows the same startup-cache pattern used by [Nvidium's IrisCheck](https://github.com/MCRcortex/nvidium/blob/dev/src/main/java/me/cortex/nvidium/sodiumCompat/IrisCheck.java).
+- Expected metrics: Fewer FabricLoader lookups in enabled entity/block-entity extraction paths. No numerical improvement is claimed.
+- Correctness constraints: Preserve the shader-pack fail-open check when Iris is loaded; skip the lookup entirely when the culler is disabled or already incompatible.
+- Compatibility risks: Mod presence is assumed immutable after Fabric startup, which matches Fabric's normal lifecycle.
+- Benchmark scenarios and repetitions: Not run. Required: compare extraction-frame setup with Iris installed and absent, with each culler enabled, using render-thread JFR; no runtime claim is made from source inspection alone.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: CI build/test and four-way mixin smoke are pending for this implementation commit.
+- Rollback condition: Revert if Iris is not detected correctly in supported launch configurations or if runtime profiling shows no benefit and the cached state complicates compatibility.
+- Decision and rationale: Keep as a narrow immutable-state lookup reduction; not performance-accepted until runtime measurement.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.
