@@ -92,7 +92,7 @@ Validate every currently allowlisted renderer in a repeatable dense-build world:
 - Chunk unload/reload, dimension changes, and world replacement while positive cache entries exist.
 - Camera movement, spectator camera, and third-person camera transitions.
 - Confirm globally rendered block entities, off-screen renderers, modded renderers, and unsupported vanilla renderers are never culled.
-- Repeat with Iris inactive, Iris shader pack active, Canvas, and Entity Culling. Unsupported configurations must fail open or disable the optimization as documented.
+- Repeat with Iris inactive, Iris shader pack active, Canvas, Entity Culling, and VulkanMod. Under VulkanMod, verify the entity wrapper composes with its frustum logic and the block-entity culler fails open when VulkanMod bypasses vanilla LevelRenderer extraction. Unsupported configurations must fail open or disable the optimization as documented.
 
 The diagnostic report must show candidates, cache behavior, ray queries, and positive occlusion results in the dense scene. Then repeat identical benchmark runs with profiling disabled. Do not accept the optimization unless no visible block entity is ever hidden and frame-time improvements exceed run-to-run variance without regressions in empty-world or ordinary gameplay controls.
 
@@ -105,7 +105,7 @@ Before treating the prototype as ready for performance comparison, validate thes
 - Entities moving behind walls, crossing the occluder plane, and teleporting; uncertainty must render rather than disappear.
 - Place and remove occluding blocks while entities remain stationary; a previously occluded entity must reappear immediately after the wall is removed.
 - Chunk unload/reload, dimension changes, and world replacement while the culler cache contains positive results.
-- Named entities, team-visible name tags, crosshair-target names, glowing/fire effects, leashes, passengers, and the active camera entity.
+- Named entities, team-visible name tags, crosshair-target names, glowing/fire effects, leashes, passengers, and the active camera entity. Repeat with Iris inactive, Iris shader pack active, and VulkanMod enabled; verify the wrapped VulkanMod frustum result is preserved.
 - Entity shadows at fractional positions and near the edge of the occluder; shadows must not pop or disappear independently of the entity.
 
 Run with profiling enabled to confirm that the scene produces candidates, cache hits, occlusion queries, and positive occlusion results. Then repeat frame-time/JFR comparisons with profiling disabled. Do not proceed to another optimization until this correctness gate passes and the culler demonstrates a repeatable benefit without frame-time regressions.
