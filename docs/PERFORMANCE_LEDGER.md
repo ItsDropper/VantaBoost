@@ -41,6 +41,26 @@ Record every investigated optimization, including rejected experiments. Compilat
 
 Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental entity and block-entity occlusion prototypes are implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
 
+### [VB-R22] Preserve sub-microsecond diagnostic timing precision
+
+- Status: Implemented — diagnostic reporting precision
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity, block-entity, and particle extraction diagnostics
+- Relevant source paths: `EntityOcclusionDiagnostics`, `BlockEntityOcclusionDiagnostics`, and `ParticleExtractionDiagnostics`
+- Profile artifact and commit: None; this changes only opt-in diagnostic units.
+- Root cause: Latencies were stored in nanoseconds but integer-divided by 1,000 before logging. Any p50/p95/p99 or average below one microsecond appeared as zero, hiding measurable sub-microsecond work.
+- Hypothesis: Reporting raw nanoseconds retains the full resolution of `System.nanoTime()` deltas and makes the fixed histogram's upper bounds useful for fast candidate paths.
+- Proposed mechanism: Keep accumulated values and histogram bucket bounds in nanoseconds through formatting; label every latency field with `ns` and document the unit. Count fields remain unchanged.
+- Expected metrics: More informative average, median, tail, and maximum values when the measured operation is below 1,000 ns. No runtime FPS gain is claimed.
+- Correctness constraints: Preserve the original elapsed values and nearest-rank histogram behavior; do not add timing calls or sample allocations.
+- Compatibility risks: Diagnostic log consumers must account for the unit suffix change from microseconds to nanoseconds.
+- Benchmark scenarios and repetitions: Not applicable; measurement display precision only.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: CI build/tests and all four mixin smoke configurations pending.
+- Rollback condition: Revert if consumers require the prior microsecond-formatted fields or nanosecond values are misinterpreted.
+- Decision and rationale: Keep; integer microsecond truncation erased the small timing differences these diagnostic histograms were added to expose.
+
 ### [VB-R21] Clear extraction scopes on exceptional exits
 
 - Status: Implemented — correctness hardening

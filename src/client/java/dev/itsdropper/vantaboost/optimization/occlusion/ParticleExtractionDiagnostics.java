@@ -70,20 +70,20 @@ public final class ParticleExtractionDiagnostics {
         }
 
         VantaBoost.LOGGER.info(
-                "Particle extraction profile over {} extraction calls: avgEngine={}us, "
-                        + "p50Engine<={}us, p95Engine<={}us, p99Engine<={}us, maxEngine={}us, "
-                        + "avgQuadGroups={}/call, avgQuadExtraction={}us/call, "
-                        + "p50QuadGroup<={}us, p95QuadGroup<={}us, p99QuadGroup<={}us, "
+                "Particle extraction profile over {} extraction calls: avgEngine={}ns, "
+                        + "p50Engine<={}ns, p95Engine<={}ns, p99Engine<={}ns, maxEngine={}ns, "
+                        + "avgQuadGroups={}/call, avgQuadExtraction={}ns/call, "
+                        + "p50QuadGroup<={}ns, p95QuadGroup<={}ns, p99QuadGroup<={}ns, "
                         + "quadCandidates={}/call, frustumVisible={}/call, "
                         + "frustumRejected={}/call",
                 extractionCalls,
-                engineExtractionNanos / extractionCalls / 1_000L,
+                engineExtractionNanos / extractionCalls,
                 ENGINE_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
                 ENGINE_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
                 ENGINE_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
-                maximumEngineExtractionNanos / 1_000L,
+                maximumEngineExtractionNanos,
                 (double) quadGroups / extractionCalls,
-                quadGroupExtractionNanos / extractionCalls / 1_000L,
+                quadGroupExtractionNanos / extractionCalls,
                 QUAD_GROUP_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
                 QUAD_GROUP_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
                 QUAD_GROUP_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,

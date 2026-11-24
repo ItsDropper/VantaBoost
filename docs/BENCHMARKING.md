@@ -33,6 +33,8 @@ Collect frame-time distributions (median, p95, p99, 1% and 0.1% lows), average F
 
 Distinguish CPU command submission from GPU execution. Do not add blocking GPU readbacks or synchronization to normal gameplay.
 
+All VantaBoost diagnostic latency fields are reported in raw nanoseconds. This preserves sub-microsecond measurements; percentile values remain conservative histogram bucket upper bounds rather than exact sample quantiles.
+
 ## Java Flight Recorder capture
 
 For a repeatable CPU/allocation capture on the Java 21 runtime, add this JVM argument for a fixed-duration run:
