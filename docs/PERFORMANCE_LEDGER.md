@@ -325,7 +325,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not run. Required: compare extraction-frame setup with Iris installed and absent, with each culler enabled, using render-thread JFR; no runtime claim is made from source inspection alone.
 - Before/after distributions: None
 - Regressions: Unknown
-- Validation evidence: CI build/test and four-way mixin smoke are pending for this implementation commit.
+- Validation evidence: [Run #45430122580](https://github.com/ItsDropper/VantaBoost/actions/runs/45430122580) passed build/tests, full-enabled, entity-only, block-entity-only, and default-disabled client smoke tests, plus JAR upload. This verifies the cached flag does not disturb any mixin configuration; it does not measure runtime lookup savings.
 - Rollback condition: Revert if Iris is not detected correctly in supported launch configurations or if runtime profiling shows no benefit and the cached state complicates compatibility.
 - Decision and rationale: Keep as a narrow immutable-state lookup reduction; not performance-accepted until runtime measurement.
 
