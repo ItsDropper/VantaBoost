@@ -36,16 +36,39 @@ public abstract class ClientSmokeTestMixin {
             Class.forName("net.minecraft.client.renderer.LevelRenderer", false, classLoader);
             Class.forName("net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
 
-            if (!LivingEntityRendererNameTagInvoker.class.isAssignableFrom(
-                    Class.forName("net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader))
-                    || !MobRendererNameTagInvoker.class.isAssignableFrom(
-                    Class.forName("net.minecraft.client.renderer.entity.MobRenderer", false, classLoader))) {
+            Class<?> livingRenderer = Class.forName(
+                    "net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader);
+            Class<?> mobRenderer = Class.forName(
+                    "net.minecraft.client.renderer.entity.MobRenderer", false, classLoader);
+            Class<?> blockEntityDispatcher = Class.forName(
+                    "net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
+            Class<?> levelRenderer = Class.forName(
+                    "net.minecraft.client.renderer.LevelRenderer", false, classLoader);
+
+            if (!LivingEntityRendererNameTagInvoker.class.isAssignableFrom(livingRenderer)
+                    || !MobRendererNameTagInvoker.class.isAssignableFrom(mobRenderer)) {
                 throw new IllegalStateException("Renderer name-tag invokers were not applied");
             }
+
+            assertMergedHandler(blockEntityDispatcher, "vantaboost$applyBlockEntityOcclusion");
+            assertMergedHandler(levelRenderer, "vantaboost$beginBlockEntityExtraction");
+            assertMergedHandler(levelRenderer, "vantaboost$endBlockEntityExtraction");
         } catch (ClassNotFoundException exception) {
             throw new IllegalStateException("Could not load VantaBoost mixin smoke-test targets", exception);
         }
 
         ((Minecraft) (Object) this).stop();
+    }
+
+    @Unique
+    private static void assertMergedHandler(Class<?> target, String handlerName) {
+        for (var method : target.getDeclaredMethods()) {
+            if (method.getName().contains(handlerName)) {
+                return;
+            }
+        }
+        throw new IllegalStateException(
+                "Expected VantaBoost mixin handler was not merged into " + target.getName()
+                        + ": " + handlerName);
     }
 }
