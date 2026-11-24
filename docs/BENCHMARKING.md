@@ -33,6 +33,23 @@ Collect frame-time distributions (median, p95, p99, 1% and 0.1% lows), average F
 
 Distinguish CPU command submission from GPU execution. Do not add blocking GPU readbacks or synchronization to normal gameplay.
 
+## Java Flight Recorder capture
+
+For a repeatable CPU/allocation capture on the Java 21 runtime, add this JVM argument for a fixed-duration run:
+
+```text
+-XX:StartFlightRecording=filename=VantaBoost-baseline.jfr,settings=profile,duration=120s,dumponexit=true
+```
+
+The recording is written relative to the Minecraft process working directory. Use a unique filename for every run and retain the raw `.jfr` file with the commit and environment metadata. Inspect it with the JDK tools:
+
+```powershell
+jfr summary .\VantaBoost-baseline.jfr
+jfr print --events jdk.ExecutionSample,jdk.ObjectAllocationSample,jdk.GarbageCollection .\VantaBoost-baseline.jfr > .\VantaBoost-jfr-summary.txt
+```
+
+Do not enable VantaBoost's per-candidate or per-particle diagnostic instrumentation during final frame-time/JFR comparisons; those modes deliberately add timing and counter work.
+
 ## Particle extraction diagnostic mode
 
 Start Minecraft with:
