@@ -1,7 +1,6 @@
 package dev.itsdropper.vantaboost.mixin;
 
 import dev.itsdropper.vantaboost.optimization.occlusion.EntityOcclusionCuller;
-import dev.itsdropper.vantaboost.optimization.occlusion.EntityOcclusionDiagnostics;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -38,6 +37,5 @@ public abstract class LevelRendererEntityOcclusionMixin {
             LevelRenderState output, CallbackInfo ci
     ) {
         EntityOcclusionCuller.endMainEntityExtraction(frustum);
-        EntityOcclusionDiagnostics.onMainEntityExtractionFrame();
     }
 }
