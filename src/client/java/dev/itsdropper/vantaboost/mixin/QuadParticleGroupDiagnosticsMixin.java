@@ -46,6 +46,9 @@ public abstract class QuadParticleGroupDiagnosticsMixin {
             )
     )
     private boolean vantaboost$recordParticleFrustumResult(boolean vanillaVisible) {
+        if (!ParticleExtractionDiagnostics.ENABLED) {
+            return vanillaVisible;
+        }
         return ParticleExtractionDiagnostics.recordFrustumResult(vanillaVisible);
     }
 }
