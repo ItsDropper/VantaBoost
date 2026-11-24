@@ -1,6 +1,7 @@
 package dev.itsdropper.vantaboost.mixin;
 
 import net.minecraft.client.Minecraft;
+import dev.itsdropper.vantaboost.optimization.occlusion.OcclusionFeaturePolicy;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -55,28 +56,40 @@ public abstract class ClientSmokeTestMixin {
             Class<?> quadParticleGroup = Class.forName(
                     "net.minecraft.client.particle.QuadParticleGroup", false, classLoader);
 
-            if (!LivingEntityRendererNameTagInvoker.class.isAssignableFrom(livingRenderer)
-                    || !MobRendererNameTagInvoker.class.isAssignableFrom(mobRenderer)) {
-                throw new IllegalStateException("Renderer name-tag invokers were not applied");
+            boolean entityOcclusionEnabled = OcclusionFeaturePolicy.isEnabled(
+                    Boolean.getBoolean("vantaboost.enableEntityOcclusion"),
+                    Boolean.getBoolean("vantaboost.disableEntityOcclusion"));
+            boolean blockEntityOcclusionEnabled = OcclusionFeaturePolicy.isEnabled(
+                    Boolean.getBoolean("vantaboost.enableBlockEntityOcclusion"),
+                    Boolean.getBoolean("vantaboost.disableBlockEntityOcclusion"));
+            boolean particleProfilerEnabled = Boolean.getBoolean("vantaboost.profileParticleExtraction");
+            boolean anyOcclusionEnabled = entityOcclusionEnabled || blockEntityOcclusionEnabled;
+
+            if (LivingEntityRendererNameTagInvoker.class.isAssignableFrom(livingRenderer)
+                    != entityOcclusionEnabled
+                    || MobRendererNameTagInvoker.class.isAssignableFrom(mobRenderer)
+                    != entityOcclusionEnabled) {
+                throw new IllegalStateException("Entity name-tag invoker application did not match feature state");
             }
 
-            assertMergedHandler(entityRenderer, "vantaboost$applyEntityOcclusion");
-            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterBlockChange");
-            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterVerifiedBlockState");
-            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterPredictedBlockState");
-            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterSectionActivation");
-            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterChunkLoad");
-            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterChunkUnload");
-            assertMergedHandler(blockEntityDispatcher, "vantaboost$applyBlockEntityOcclusion");
-            assertMergedHandler(levelRenderer, "vantaboost$beginMainEntityExtraction");
-            assertMergedHandler(levelRenderer, "vantaboost$endMainEntityExtraction");
-            assertMergedHandler(levelRenderer, "vantaboost$beginBlockEntityExtraction");
-            assertMergedHandler(levelRenderer, "vantaboost$endBlockEntityExtraction");
-            assertMergedHandler(particleEngine, "vantaboost$beginParticleExtraction");
-            assertMergedHandler(particleEngine, "vantaboost$endParticleExtraction");
-            assertMergedHandler(quadParticleGroup, "vantaboost$beginQuadParticleExtraction");
-            assertMergedHandler(quadParticleGroup, "vantaboost$endQuadParticleExtraction");
-            assertMergedHandler(quadParticleGroup, "vantaboost$recordParticleFrustumResult");
+            assertHandler(entityRenderer, "vantaboost$applyEntityOcclusion", entityOcclusionEnabled);
+            assertHandler(clientLevel, "vantaboost$invalidateAfterBlockChange", anyOcclusionEnabled);
+            assertHandler(clientLevel, "vantaboost$invalidateAfterVerifiedBlockState", anyOcclusionEnabled);
+            assertHandler(clientLevel, "vantaboost$invalidateAfterPredictedBlockState", anyOcclusionEnabled);
+            assertHandler(clientLevel, "vantaboost$invalidateAfterSectionActivation", anyOcclusionEnabled);
+            assertHandler(clientLevel, "vantaboost$invalidateAfterChunkLoad", anyOcclusionEnabled);
+            assertHandler(clientLevel, "vantaboost$invalidateAfterChunkUnload", anyOcclusionEnabled);
+            assertHandler(blockEntityDispatcher, "vantaboost$applyBlockEntityOcclusion",
+                    blockEntityOcclusionEnabled);
+            assertHandler(levelRenderer, "vantaboost$beginMainEntityExtraction", entityOcclusionEnabled);
+            assertHandler(levelRenderer, "vantaboost$endMainEntityExtraction", entityOcclusionEnabled);
+            assertHandler(levelRenderer, "vantaboost$beginBlockEntityExtraction", blockEntityOcclusionEnabled);
+            assertHandler(levelRenderer, "vantaboost$endBlockEntityExtraction", blockEntityOcclusionEnabled);
+            assertHandler(particleEngine, "vantaboost$beginParticleExtraction", particleProfilerEnabled);
+            assertHandler(particleEngine, "vantaboost$endParticleExtraction", particleProfilerEnabled);
+            assertHandler(quadParticleGroup, "vantaboost$beginQuadParticleExtraction", particleProfilerEnabled);
+            assertHandler(quadParticleGroup, "vantaboost$endQuadParticleExtraction", particleProfilerEnabled);
+            assertHandler(quadParticleGroup, "vantaboost$recordParticleFrustumResult", particleProfilerEnabled);
         } catch (ClassNotFoundException exception) {
             throw new IllegalStateException("Could not load VantaBoost mixin smoke-test targets", exception);
         }
@@ -85,14 +98,21 @@ public abstract class ClientSmokeTestMixin {
     }
 
     @Unique
-    private static void assertMergedHandler(Class<?> target, String handlerName) {
+    private static void assertHandler(Class<?> target, String handlerName, boolean expected) {
         for (var method : target.getDeclaredMethods()) {
             if (method.getName().contains(handlerName)) {
+                if (!expected) {
+                    throw new IllegalStateException(
+                            "Disabled VantaBoost mixin handler was still merged into "
+                                    + target.getName() + ": " + handlerName);
+                }
                 return;
             }
         }
-        throw new IllegalStateException(
-                "Expected VantaBoost mixin handler was not merged into " + target.getName()
-                        + ": " + handlerName);
+        if (expected) {
+            throw new IllegalStateException(
+                    "Expected VantaBoost mixin handler was not merged into " + target.getName()
+                            + ": " + handlerName);
+        }
     }
 }

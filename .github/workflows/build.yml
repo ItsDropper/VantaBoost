@@ -29,6 +29,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xvfb
       - name: Smoke-test client mixin application
         run: LIBGL_ALWAYS_SOFTWARE=1 timeout 300s gradle --no-daemon runClient -PvantaboostCiSmoke=true
+      - name: Smoke-test default disabled mixin path
+        run: LIBGL_ALWAYS_SOFTWARE=1 timeout 300s gradle --no-daemon runClient -PvantaboostCiSmokeDisabled=true
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         if: success()

@@ -122,4 +122,8 @@ tasks.matching { it.name == "runClient" }.configureEach {
         useXvfb.set(true)
         jvmArgs "-Dvantaboost.ciSmoke=true", "-Dvantaboost.enableEntityOcclusion=true", "-Dvantaboost.enableBlockEntityOcclusion=true", "-Dvantaboost.profileParticleExtraction=true"
     }
+    if (providers.gradleProperty("vantaboostCiSmokeDisabled").isPresent()) {
+        useXvfb.set(true)
+        jvmArgs "-Dvantaboost.ciSmoke=true"
+    }
 }
