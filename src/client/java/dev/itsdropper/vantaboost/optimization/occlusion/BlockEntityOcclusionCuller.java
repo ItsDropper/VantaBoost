@@ -103,10 +103,10 @@ public final class BlockEntityOcclusionCuller {
                 || !extractionActive || level == null || client.player == null
                 || blockEntity == null || renderer == null
                 || blockEntity.getLevel() != level || blockEntity.isRemoved()
-                || !BlockEntityOcclusionPolicy.isSupported(
-                        renderer.getClass().getName(), blockEntity.getClass().getName())
-                || renderer.shouldRenderOffScreen()
-                || level.getGloballyRenderedBlockEntities().contains(blockEntity)
+                || !BlockEntityOcclusionPolicy.isEligible(
+                        renderer.getClass().getName(), blockEntity.getClass().getName(),
+                        renderer.shouldRenderOffScreen(),
+                        level.getGloballyRenderedBlockEntities().contains(blockEntity))
                 || rendererCameraPosition == null
                 || rendererCameraPosition.x != cameraX
                 || rendererCameraPosition.y != cameraY
