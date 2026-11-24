@@ -96,7 +96,7 @@ Version values live in gradle.properties and must be updated as a coordinated, t
 
 ## Experimental entity occlusion integration
 
-The current prototype is client-only and does not add a Vanta Client dependency.
+The current prototype is client-only and does not add a Vanta Client dependency. It is disabled by default until in-game visual correctness and controlled performance benchmarks pass; enable it with `-Dvantaboost.enableEntityOcclusion=true` and force it off with `-Dvantaboost.disableEntityOcclusion=true`.
 
 - `EntityRenderer.shouldRender(Entity, Frustum, double, double, double)Z` redirects its `Frustum.isVisible(AABB)Z` call. The redirect preserves vanilla frustum visibility and reuses the exact AABB vanilla already computed.
 - ClientLevel direct, verified, and predicted block-state updates, section activation, chunk loads, and chunk unloads invalidate cached visibility.
