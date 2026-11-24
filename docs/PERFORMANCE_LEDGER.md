@@ -195,7 +195,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not run. Required: particle-heavy scene with many particles in hidden non-empty sections, ordinary gameplay control, and particles in empty/unloaded sections; compare Sodium visibility culling on/off with profiling disabled for final frame-time measurements.
 - Before/after distributions: None
 - Regressions: Unknown
-- Validation evidence: Source inspection confirms the early extraction gate in Minecraft 1.21.11 and the section-visibility semantics in the inspected Sodium source. An opt-in baseline profiler now measures `ParticleEngine.extract` duration, `QuadParticleGroup` duration, per-extraction-call candidate counts, and vanilla frustum survivors/rejections with `-Dvantaboost.profileParticleExtraction=true`; it does not change visibility results. CI run [#45418003923](https://github.com/ItsDropper/VantaBoost/actions/runs/45418003923) passed build/tests, the headless client mixin smoke test for both profiler targets, and JAR upload. The disabled per-particle instrumentation path returns the original frustum result before entering the counter method. No profiler capture or runtime benchmark has been collected yet. Detailed source analysis and implementation gate are in [RESEARCH.md](RESEARCH.md#d-sodium-aware-particle-section-culling).
+- Validation evidence: Source inspection confirms the early extraction gate in Minecraft 1.21.11 and the section-visibility semantics in the inspected Sodium source. An opt-in baseline profiler now measures `ParticleEngine.extract` duration, `QuadParticleGroup` duration, per-extraction-call candidate counts, and vanilla frustum survivors/rejections with `-Dvantaboost.profileParticleExtraction=true`; it does not change visibility results. CI run [#45418003923](https://github.com/ItsDropper/VantaBoost/actions/runs/45418003923) passed build/tests, the headless client mixin smoke test for both profiler targets, and JAR upload. The Mixin config plugin excludes both particle diagnostics mixins entirely when the profiler property is absent, so no per-particle callback is installed in normal launches. CI enables the property to verify both profiler targets. No profiler capture or runtime benchmark has been collected yet. Detailed source analysis and implementation gate are in [RESEARCH.md](RESEARCH.md#d-sodium-aware-particle-section-culling).
 - Rollback condition: Do not enable by default; disable the integration if any particle disappears while its billboard intersects a visible section or if added query overhead exceeds saved extraction work.
 - Decision and rationale: Research candidate only. Do not implement until the vanilla particle subclass bounds are audited and a particle-heavy baseline demonstrates a meaningful render-thread cost.
 
@@ -204,22 +204,87 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Status: Implemented — unbenchmarked
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity and block-entity visibility filtering
-- Relevant source paths: `EntityRendererOcclusionMixin`, `BlockEntityRenderDispatcherOcclusionMixin`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`
-- Profile artifact and commit: None; implementation commit [47e3ae7](https://github.com/ItsDropper/VantaBoost/commit/47e3ae76bbb1db6a0d53852252d4a62bfd2ea5c4)
+- Relevant source paths: `EntityRendererOcclusionMixin`, `BlockEntityRenderDispatcherOcclusionMixin`, both occlusion cullers, and `VantaBoostMixinPlugin`
+- Profile artifact and commit: None; implementation commits [47e3ae7](https://github.com/ItsDropper/VantaBoost/commit/47e3ae76bbb1db6a0d53852252d4a62bfd2ea5c4), [a475e5e](https://github.com/ItsDropper/VantaBoost/commit/a475e5e3bbe9a51570d237c1df0f5e812448706c), and [e23309a](https://github.com/ItsDropper/VantaBoost/commit/e23309ad2db70785ff2988b2b6d6eea9f6bc97e9)
 - Measured baseline cost: Unknown; no runtime capture exists.
-- Root cause: Both occlusion features are opt-in and disabled by default, but their wrappers still entered VantaBoost-specific dispatch on vanilla-visible candidates. The entity wrapper additionally evaluated renderer/name-tag eligibility before the culler rejected the disabled feature.
-- Hypothesis: Checking the startup enable flag immediately after the original vanilla visibility operation avoids all VantaBoost-specific eligibility and culler work when the feature is disabled, without changing the original renderer result.
-- Proposed mechanism: Expose the immutable startup enable state from each culler; short-circuit the entity and block-entity wrappers before calling any culling policy; retain a defensive early return in the entity culler API.
-- Expected metrics: Lower render-thread CPU work in entity-heavy and block-entity-heavy scenes with both features disabled. No numerical improvement is claimed.
-- Correctness constraints: Always invoke the wrapped vanilla/third-party operation exactly once and return its result unchanged when the feature is disabled. Preserve the existing enabled path.
-- Compatibility risks: MixinExtras wrapper composition and call ordering; the wrapped operation must remain first so other renderer integrations are preserved.
-- Implementation commit: [47e3ae7](https://github.com/ItsDropper/VantaBoost/commit/47e3ae76bbb1db6a0d53852252d4a62bfd2ea5c4)
-- Benchmark scenarios and repetitions: Not run. Required: identical entity-dense and village/block-entity scenes with both properties omitted, comparing the parent commit and implementation commit using render-thread JFR and frame-time distributions; repeat with each culler enabled to ensure the enabled path is unchanged.
+- Root cause: Initially, disabled culling wrappers still entered VantaBoost-specific dispatch on vanilla-visible candidates. The entity wrapper additionally evaluated renderer/name-tag eligibility before the culler rejected the disabled feature.
+- Hypothesis: An early enable check avoids the policy path, while omitting culling mixins entirely when disabled removes the remaining wrapper and extraction-scope overhead.
+- Proposed mechanism: Preserve defensive early returns and apply entity/block-entity mixins only when the matching startup enable flag is true and its force-disable flag is false. Apply shared ClientLevel invalidation only when either feature is active.
+- Expected metrics: Lower render-thread CPU work in default-disabled entity-heavy and block-entity-heavy scenes. No numerical improvement is claimed.
+- Correctness constraints: When enabled, preserve the wrapped vanilla/third-party operation exactly once and keep fail-open behavior. When disabled, relevant mixin handlers must not appear in transformed target classes.
+- Compatibility risks: MixinExtras wrapper composition and mixin-config plugin name matching; validate both enabled and disabled target transformation.
+- Implementation commits: [47e3ae7](https://github.com/ItsDropper/VantaBoost/commit/47e3ae76bbb1db6a0d53852252d4a62bfd2ea5c4), [a475e5e](https://github.com/ItsDropper/VantaBoost/commit/a475e5e3bbe9a51570d237c1df0f5e812448706c), and [e23309a](https://github.com/ItsDropper/VantaBoost/commit/e23309ad2db70785ff2988b2b6d6eea9f6bc97e9)
+- Benchmark scenarios and repetitions: Not run. Required: identical entity-dense and village/block-entity scenes with properties omitted, comparing the original branch and current default launch using render-thread JFR and frame-time distributions; repeat with each culler enabled.
 - Before/after distributions: None
 - Regressions: Unknown
-- Validation evidence: Source diff confirms short-circuit ordering and unchanged wrapped-operation result. GitHub Actions validation is pending for the implementation commit; no local build or runtime benchmark was performed.
-- Rollback condition: Revert if disabled-mode rendering differs from vanilla/third-party behavior or if controlled measurements show no benefit and the guard creates measurable overhead.
-- Decision and rationale: Keep as a narrow disabled-path optimization candidate. It is not performance-accepted until runtime correctness and controlled measurements are complete.
+- Validation evidence: [Run #45424271521](https://github.com/ItsDropper/VantaBoost/actions/runs/45424271521) passed the initial disabled-path code build/smoke. [Run #45426844973](https://github.com/ItsDropper/VantaBoost/actions/runs/45426844973) passed build/tests, enabled-feature mixin smoke, default-disabled mixin smoke, and JAR upload. No runtime FPS benchmark has been collected.
+- Rollback condition: Revert if enabled-mode behavior changes or if controlled measurements show no benefit and the gating introduces compatibility problems.
+- Decision and rationale: Keep as a narrow default-overhead reduction. It is not performance-accepted until runtime measurement and visual correctness gates are complete.
+
+### [VB-R12] Cache Iris shader-pack API resolution
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity-occlusion compatibility checks
+- Relevant source path: `IrisShaderPackCompatibility`
+- Profile artifact and commit: None
+- Measured baseline cost: Unknown; no runtime profile isolates Iris API lookup cost.
+- Root cause: The entity culler checks Iris once per main entity-extraction frame, but the compatibility helper repeated class lookup, method lookup, and singleton retrieval on every frame.
+- Hypothesis: Caching the Iris API instance and method after the first successful resolution removes repeated reflection discovery from the per-frame compatibility check while preserving the same shader-pack decision.
+- Proposed mechanism: Lazily resolve and cache the public Iris API on first use. Cache an unavailable sentinel on lookup/linkage/security failures and fail open; invoke the cached method on subsequent frames. Do not initialize or query Iris when the mod is absent.
+- Expected metrics: Lower CPU time in the Iris-enabled entity-occlusion frame setup path. No numerical improvement is claimed.
+- Correctness constraints: Active shader packs and unknown API states must continue to disable entity occlusion. No hard Iris dependency may be introduced.
+- Compatibility risks: Iris API method visibility/signature changes; failures must remain fail-open.
+- Implementation and test commits: [2ce93a5](https://github.com/ItsDropper/VantaBoost/commit/2ce93a5fb97fbc7d80eff74e9b6a53c0b466a546), [66f19d2](https://github.com/ItsDropper/VantaBoost/commit/66f19d2f806ab7bf5fadf29e129571012bbb7711), [bc829a4](https://github.com/ItsDropper/VantaBoost/commit/bc829a4571afecbf105076befc2e73b61d83982c), and [3016c8d](https://github.com/ItsDropper/VantaBoost/commit/3016c8d57c5b01c00bf26088ddd967c123671ea7)
+- Benchmark scenarios and repetitions: Not run. Required: compare entity-extraction frame setup with Iris loaded and no shader pack, then with a shader pack active, before/after the cache; verify active-pack and API-failure paths never enable culling.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: [Run #45425081341](https://github.com/ItsDropper/VantaBoost/actions/runs/45425081341) passed build/tests, mixin smoke, and JAR upload. The fixture verifies singleton discovery occurs once while shader-pack state is queried each frame; the runtime-failure assertion is included in the next validation run.
+- Rollback condition: Revert if Iris versions fail to resolve correctly, active shader packs do not reliably fail open, or profiling shows no benefit and the cache adds complexity.
+- Decision and rationale: Keep as a narrow compatibility-path overhead reduction, not a performance-accepted optimization.
+
+### [VB-R13] Remove disabled particle-profiler mixins from the hot path
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Particle render-state extraction diagnostics
+- Relevant source paths: `VantaBoostMixinPlugin`, `ParticleEngineDiagnosticsMixin`, and `QuadParticleGroupDiagnosticsMixin`
+- Profile artifact and commit: None; implementation commit [bdb7eb4](https://github.com/ItsDropper/VantaBoost/commit/bdb7eb4cb78f3ccec40296ab7ec41467e82d1be5)
+- Measured baseline cost: Unknown; no runtime capture isolates the disabled profiler callback.
+- Root cause: The frustum-expression diagnostics handler was invoked for every candidate particle even when its internal enabled flag immediately returned the original result. A branch inside the callback did not remove the callback from the per-particle path.
+- Hypothesis: Excluding both profiler mixins at startup when the property is absent removes the per-particle instrumentation call entirely.
+- Proposed mechanism: Apply the two particle diagnostics mixins only when `vantaboost.profileParticleExtraction=true`. The CI smoke launch explicitly enables the property to validate both targets.
+- Expected metrics: No profiler callback or branch in the ordinary per-particle frustum path. No FPS gain is claimed.
+- Correctness constraints: When profiling is enabled, preserve the original frustum result and counters must not alter visibility decisions.
+- Compatibility risks: Mixin config plugin must match both fully qualified mixin names; CI verifies the enabled path and default-disabled smoke verifies their absence.
+- Implementation commit: [bdb7eb4](https://github.com/ItsDropper/VantaBoost/commit/bdb7eb4cb78f3ccec40296ab7ec41467e82d1be5)
+- Benchmark scenarios and repetitions: Not run. Required: compare default launch and profiler-enabled launch in a particle-heavy scene; use profiler-enabled runs only for diagnosis, not final frame-time comparison.
+- Before/after distributions: None
+- Regressions: Unknown
+- Validation evidence: [Run #45425326353](https://github.com/ItsDropper/VantaBoost/actions/runs/45425326353) passed build/tests, enabled profiler-mixin smoke, and JAR upload. [Run #45426844973](https://github.com/ItsDropper/VantaBoost/actions/runs/45426844973) also passed the default-disabled mixin smoke.
+- Rollback condition: Revert if opt-in profiler mixins fail to apply or their enabled output changes particle visibility.
+- Decision and rationale: Keep; removing diagnostics from ordinary hot paths is preferable to relying on a per-particle disabled branch.
+
+### [VB-R14] Conditionally apply optional culling and CI mixins
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Mixin startup and optional feature activation
+- Relevant source paths: `VantaBoostMixinPlugin`, `ClientSmokeTestMixin`, and the entity/block-entity occlusion mixins
+- Profile artifact and commit: None; implementation commits [a475e5e](https://github.com/ItsDropper/VantaBoost/commit/a475e5e3bbe9a51570d237c1df0f5e812448706c), [e23309a](https://github.com/ItsDropper/VantaBoost/commit/e23309ad2db70785ff2988b2b6d6eea9f6bc97e9), [913d523](https://github.com/ItsDropper/VantaBoost/commit/913d523bd1a34442dced6d900e551fd9fc4ab03e), and [0378631](https://github.com/ItsDropper/VantaBoost/commit/03786315fb9d6464f0742c0cefd3f7a77f1801e9)
+- Measured baseline cost: Unknown; no runtime capture exists.
+- Root cause: Experimental culling wrappers, shared invalidation hooks, and the CI-only tick probe were registered even when their features were disabled.
+- Hypothesis: Applying only the mixins required by enabled startup properties removes unnecessary transformed handlers from normal launches.
+- Proposed mechanism: Gate entity mixins on the entity enable/force-disable pair, block-entity mixins on the block-entity pair, shared ClientLevel invalidation on either active feature, and the smoke-test mixin on `vantaboost.ciSmoke`. Keep profiler mixins under their separate profiling property.
+- Expected metrics: Fewer injected wrappers and no CI-only tick callback in normal launches. No numerical improvement is claimed.
+- Correctness constraints: Preserve required mixins when enabled; omit them when disabled; do not directly load mixin classes from the smoke test. All feature properties are startup-only.
+- Compatibility risks: Future mixin additions must be added to the plugin's feature sets and smoke assertions.
+- Benchmark scenarios and repetitions: Not run; this is a startup/disabled-overhead reduction rather than a claimed rendering optimization.
+- Before/after distributions: None
+- Regressions: The first disabled-mode smoke exposed an illegal direct reference to an optional mixin interface. The probe now checks transformed interface names without loading mixin classes directly.
+- Validation evidence: [Run #45426844973](https://github.com/ItsDropper/VantaBoost/actions/runs/45426844973) passed build/tests, enabled-feature smoke, default-disabled smoke, and JAR upload.
+- Rollback condition: Revert if any required enabled mixin is omitted or any disabled optional mixin remains applied.
+- Decision and rationale: Keep; optional features should not impose injected runtime work when they are not enabled.
 
 ### [VB-R12] Cache Iris shader-pack API resolution
 

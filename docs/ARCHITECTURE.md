@@ -84,6 +84,18 @@ No Vanta Client dependency belongs in mod metadata or the runtime classpath. Imp
 
 Do not create a mixin configuration just to reserve a directory. For each future mixin, record its target class, exact method descriptor, mapping namespace, injection point, expected match count, and compatibility risks in the ledger. Enable strict injection-count checks where practical.
 
+## Conditional mixin application
+
+`VantaBoostMixinPlugin` gates optional mixins at startup:
+
+- Entity renderer, name-tag invoker, and entity-extraction mixins are applied only when `vantaboost.enableEntityOcclusion=true` and the corresponding force-disable property is not true.
+- Block-entity dispatcher and extraction mixins follow the equivalent block-entity enable/disable properties.
+- The shared `ClientLevel` invalidation mixin is applied only when at least one occlusion feature is active.
+- Particle extraction diagnostics mixins are applied only when `vantaboost.profileParticleExtraction=true`.
+- The CI smoke-test mixin is applied only when `vantaboost.ciSmoke=true`.
+
+A normal launch with experimental features disabled therefore has no entity/block-entity culling wrappers, per-particle profiler callback, or CI-only tick probe installed. These are startup flags; changing them requires restarting Minecraft. CI exercises both the fully enabled mixin set and the default-disabled set.
+
 ## Target toolchain
 
 - Minecraft 1.21.11
