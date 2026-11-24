@@ -72,10 +72,8 @@ public abstract class ClientSmokeTestMixin {
             assertHandler(clientLevel, "vantaboost$invalidateAfterChunkUnload", anyOcclusionEnabled);
             assertHandler(blockEntityDispatcher, "vantaboost$applyBlockEntityOcclusion",
                     blockEntityOcclusionEnabled);
-            assertHandler(levelRenderer, "vantaboost$beginMainEntityExtraction", entityOcclusionEnabled);
-            assertHandler(levelRenderer, "vantaboost$endMainEntityExtraction", entityOcclusionEnabled);
-            assertHandler(levelRenderer, "vantaboost$beginBlockEntityExtraction", blockEntityOcclusionEnabled);
-            assertHandler(levelRenderer, "vantaboost$endBlockEntityExtraction", blockEntityOcclusionEnabled);
+            assertHandler(levelRenderer, "vantaboost$trackMainEntityExtraction", entityOcclusionEnabled);
+            assertHandler(levelRenderer, "vantaboost$trackBlockEntityExtraction", blockEntityOcclusionEnabled);
             assertHandler(particleEngine, "vantaboost$beginParticleExtraction", particleProfilerEnabled);
             assertHandler(particleEngine, "vantaboost$endParticleExtraction", particleProfilerEnabled);
             assertHandler(quadParticleGroup, "vantaboost$beginQuadParticleExtraction", particleProfilerEnabled);

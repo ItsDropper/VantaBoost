@@ -46,7 +46,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Status: Implemented — correctness hardening
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity and block-entity extraction lifecycle
-- Relevant source paths: `LevelRendererEntityOcclusionMixin`, `LevelRendererBlockEntityOcclusionMixin`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`
+- Relevant source paths: `LevelRendererEntityOcclusionMixin`, `LevelRendererBlockEntityOcclusionMixin`, `ClientSmokeTestMixin`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`
 - Profile artifact and commit: Not applicable; this is a lifecycle/correctness fix.
 - Root cause: Both extraction scopes were opened at method HEAD and closed at RETURN. A thrown exception skips RETURN, leaving the static scope active until another matching extraction begins. If an upstream renderer catches the exception and continues with another pass using the same frustum/camera, the stale scope could permit culling outside the intended main extraction interval.
 - Hypothesis: A chainable MixinExtras `@WrapMethod` with `try/finally` guarantees scope cleanup on normal and exceptional exits.
@@ -57,7 +57,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not applicable.
 - Before/after distributions: None
 - Regressions: None known.
-- Validation evidence: CI build, JUnit tests, and all four headless client mixin smoke configurations pending.
+- Validation evidence: CI build, JUnit tests, and all four headless client mixin smoke configurations pending; the CI smoke assertions were updated to verify the new wrapper handlers.
 - Rollback condition: Revert if the wrapper cannot compose with supported renderer mixins or fails to apply on the exact 1.21.11 descriptors.
 - Decision and rationale: Keep; extraction scope state must be exception-safe because it gates whether entities and block entities may be hidden.
 
