@@ -297,3 +297,33 @@ No candidate is approved until:
 5. Benchmark data shows improvement outside measurement noise without unacceptable regressions.
 
 **Current decision:** the entity-only mixin is an experimental implementation authorized as a correctness prototype. It is intentionally conservative and may cull fewer entities than full voxel culling. It must not be called production-accepted until the 1.21.11 build, mixin application, launch behavior, visual correctness, compatibility, and controlled performance benchmarks are verified.
+
+
+### D. Sodium-aware particle section culling
+
+Upstream: [Polydium particle section culler](https://github.com/Polyfrost/Polydium/blob/a9ac4371916a86a3adaba3e0f0ea1e0a3cead8e9/src/main/java/org/polyfrost/polydium/mixin/client/perf/sodium/MixinParticleSectionCull.java), [Sodium 1.21.11 source](https://github.com/CaffeineMC/sodium/blob/3a99e4ee80d4a13f453f6607a215f3615842c445/common/src/main/java/net/caffeinemc/mods/sodium/client/render/SodiumWorldRenderer.java), and [Minecraft 1.21.11 particle extraction](https://github.com/H1lkaaaGD/Minecraft_1.21.11_Source/blob/main/net/minecraft/client/particle/QuadParticleGroup.java).
+
+Observed 1.21.11 behavior:
+- `QuadParticleGroup.extractRenderState` iterates `SingleQuadParticle` instances and calls `particle.extract` only when `Frustum.pointInFrustum(particle.x, particle.y, particle.z)` succeeds. This is an early extraction gate: a rejected particle never builds or appends its quad render data.
+- Polydium modifies the existing frustum result with MixinExtras `@ModifyExpressionValue`, rather than wrapping the call again. Its source comment explicitly notes that Particle Core already wraps this invocation and that adding another wrapper per particle would cost too much.
+- For particles that pass the vanilla frustum test, Polydium asks `SodiumWorldRenderer.isBoxVisible` about the particle's position. It caches only a positive "section visible this tick" result on the particle; it does not cache hidden results.
+- Sodium's `isBoxVisible` returns visible when the queried bounds are outside the valid world height or its render tree is unavailable. Otherwise, `SectionTree.isBoxVisible` checks whether any intersecting section is present in the render tree, then whether any intersecting section is empty. The `RenderSectionManager` source explicitly notes that this tree is not necessarily frustum-filtered. Therefore the vanilla particle frustum test remains necessary; Sodium contributes section-occlusion visibility, not a replacement frustum test.
+- The empty-section fallback is important: unloaded or empty sections are not represented as ordinary visible non-empty sections, but particles in those locations must not be hidden just because terrain geometry is absent.
+
+Value: in a particle-heavy scene, particles located inside non-empty sections hidden by Sodium's section visibility graph may be rejected before per-particle quad extraction. It reuses Sodium's existing world visibility result rather than creating a second voxel/section traversal system. This is a more targeted CPU-side opportunity than general particle batching, and it only applies when Sodium is installed.
+
+Correctness and compatibility risks:
+- `SingleQuadParticle` quad geometry is sized through `getQuadSize(partialTick)`, while the base `Particle` bounding box is based on `bbWidth` and `bbHeight`. Those are not inherently the same contract. A position-only section test can reject a large billboard whose quad reaches into a neighboring visible section. Audit every vanilla subclass's size behavior and use a conservative geometry envelope or an exact safe allowlist before implementing.
+- Particle Core modifies the same frustum expression. Preserve the existing expression result and compose with its behavior; do not introduce a second per-particle wrapper. Polydium has a specific fallback for Particle Core particles whose bounds center is outside the frustum. VantaBoost should initially fail open when Particle Core is loaded unless that interaction is independently verified.
+- Custom particle subclasses and particle renderer mods may use unusual bounds, custom extraction, or nonstandard visibility rules. Unknown classes must fail open.
+- Sodium's visibility graph is renderer-owned and may be absent or rebuilding. Treat a null renderer, null render tree, unavailable API, or uncertain section state as visible. Do not access Sodium internals from a worker thread.
+- This is not a GPU optimization by itself. It reduces CPU-side particle extraction and downstream submission for particles in hidden sections; the effect depends on particle count and render-thread bottlenecks.
+
+Implementation gate:
+1. Audit vanilla `SingleQuadParticle` subclasses and determine which ones have a quad envelope fully represented by a conservative bound.
+2. Confirm the exact Sodium artifact/API for the supported 1.21.11 Sodium release and the runtime behavior of `isBoxVisible` while the render tree is null, rebuilding, or outside loaded sections.
+3. Add a Sodium-optional integration that preserves the existing `Frustum.pointInFrustum` result and fails open without Sodium or with Particle Core until compatibility is proven.
+4. Add deterministic tests for eligibility, bounds expansion, and cache invalidation; add a headless mixin-application smoke test with Sodium present and absent if the CI environment can resolve both configurations.
+5. Benchmark a fixed particle-heavy scene with Sodium's visibility path enabled and disabled, with profiling disabled for final frame-time measurements. Also test ordinary gameplay and particles in empty/unloaded sections.
+
+**Status:** Proposed. Source-level mechanism is understood, but no VantaBoost implementation, in-game visual validation, or benchmark exists.
