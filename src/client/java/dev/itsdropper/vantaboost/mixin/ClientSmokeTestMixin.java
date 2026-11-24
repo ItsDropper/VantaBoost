@@ -40,6 +40,10 @@ public abstract class ClientSmokeTestMixin {
                     "net.minecraft.client.renderer.entity.LivingEntityRenderer", false, classLoader);
             Class<?> mobRenderer = Class.forName(
                     "net.minecraft.client.renderer.entity.MobRenderer", false, classLoader);
+            Class<?> entityRenderer = Class.forName(
+                    "net.minecraft.client.renderer.entity.EntityRenderer", false, classLoader);
+            Class<?> clientLevel = Class.forName(
+                    "net.minecraft.client.multiplayer.ClientLevel", false, classLoader);
             Class<?> blockEntityDispatcher = Class.forName(
                     "net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher", false, classLoader);
             Class<?> levelRenderer = Class.forName(
@@ -50,7 +54,12 @@ public abstract class ClientSmokeTestMixin {
                 throw new IllegalStateException("Renderer name-tag invokers were not applied");
             }
 
+            assertMergedHandler(entityRenderer, "vantaboost$applyEntityOcclusion");
+            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterBlockChange");
+            assertMergedHandler(clientLevel, "vantaboost$invalidateAfterChunkUnload");
             assertMergedHandler(blockEntityDispatcher, "vantaboost$applyBlockEntityOcclusion");
+            assertMergedHandler(levelRenderer, "vantaboost$beginMainEntityExtraction");
+            assertMergedHandler(levelRenderer, "vantaboost$endMainEntityExtraction");
             assertMergedHandler(levelRenderer, "vantaboost$beginBlockEntityExtraction");
             assertMergedHandler(levelRenderer, "vantaboost$endBlockEntityExtraction");
         } catch (ClassNotFoundException exception) {
