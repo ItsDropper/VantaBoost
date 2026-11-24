@@ -8,13 +8,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Removes opt-in diagnostics mixins entirely when their profiler is disabled.
- * This keeps instrumentation out of hot paths instead of adding a branch to
- * every particle's frustum test during ordinary gameplay.
+ * Applies optional optimization, diagnostic, and CI-only mixins only when
+ * their corresponding startup flags are enabled. Disabled features therefore
+ * add no wrappers or instrumentation to normal rendering and tick paths.
  */
 public final class VantaBoostMixinPlugin implements IMixinConfigPlugin {
     private static final String PARTICLE_PROFILER_PROPERTY =
             "vantaboost.profileParticleExtraction";
+    private static final String CI_SMOKE_PROPERTY = "vantaboost.ciSmoke";
+    private static final String CLIENT_SMOKE_TEST_MIXIN =
+            "dev.itsdropper.vantaboost.mixin.ClientSmokeTestMixin";
     private static final String PARTICLE_ENGINE_MIXIN =
             "dev.itsdropper.vantaboost.mixin.ParticleEngineDiagnosticsMixin";
     private static final String QUAD_PARTICLE_GROUP_MIXIN =
@@ -51,6 +54,9 @@ public final class VantaBoostMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (CLIENT_SMOKE_TEST_MIXIN.equals(mixinClassName)) {
+            return Boolean.getBoolean(CI_SMOKE_PROPERTY);
+        }
         if (PARTICLE_ENGINE_MIXIN.equals(mixinClassName)
                 || QUAD_PARTICLE_GROUP_MIXIN.equals(mixinClassName)) {
             return Boolean.getBoolean(PARTICLE_PROFILER_PROPERTY);
