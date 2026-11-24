@@ -62,6 +62,7 @@ public abstract class EntityRendererOcclusionMixin {
         // renderer's visibility logic (for example VulkanMod's section test).
         boolean vanillaVisible = original.call(frustum, bounds);
         if (!vanillaVisible
+                || !EntityOcclusionCuller.isEnabled()
                 || frustum != originalFrustum
                 || !Double.isFinite(cameraX) || !Double.isFinite(cameraY)
                 || !Double.isFinite(cameraZ)

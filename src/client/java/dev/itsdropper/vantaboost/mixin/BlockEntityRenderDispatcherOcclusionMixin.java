@@ -31,6 +31,7 @@ public abstract class BlockEntityRenderDispatcherOcclusionMixin {
     ) {
         boolean vanillaShouldRender = original.call(renderer, blockEntity, cameraPosition);
         return vanillaShouldRender
+                && BlockEntityOcclusionCuller.isEnabled()
                 && !BlockEntityOcclusionCuller.shouldCull(
                         blockEntity, renderer, cameraPosition);
     }

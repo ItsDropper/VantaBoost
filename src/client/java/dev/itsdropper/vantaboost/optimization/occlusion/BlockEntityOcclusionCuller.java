@@ -53,6 +53,11 @@ public final class BlockEntityOcclusionCuller {
     private BlockEntityOcclusionCuller() {
     }
 
+    /** Returns whether the experimental block-entity culler was explicitly enabled at startup. */
+    public static boolean isEnabled() {
+        return ENABLED;
+    }
+
     public static void beginExtraction(Vec3 cameraPosition) {
         if (!ENABLED) {
             extractionActive = false;

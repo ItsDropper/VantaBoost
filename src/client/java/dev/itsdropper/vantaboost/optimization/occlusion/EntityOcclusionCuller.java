@@ -136,11 +136,19 @@ public final class EntityOcclusionCuller {
     private EntityOcclusionCuller() {
     }
 
+    /** Returns whether the experimental entity culler was explicitly enabled at startup. */
+    public static boolean isEnabled() {
+        return ENABLED;
+    }
+
     public static boolean shouldCull(
             Entity entity, AABB renderBounds,
             double cameraX, double cameraY, double cameraZ,
             double shadowRadius, double shadowStrength, Class<?> rendererType
     ) {
+        if (!ENABLED) {
+            return false;
+        }
         if (!EntityOcclusionDiagnostics.ENABLED) {
             return shouldCullInternal(
                     entity, renderBounds, cameraX, cameraY, cameraZ,
