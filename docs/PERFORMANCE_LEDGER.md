@@ -397,7 +397,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Target Minecraft version: 1.21.11
 - Subsystem: Particle engine and quad-particle-group extraction
 - Relevant source paths: `ParticleExtractionDiagnostics` and `NanoHistogram`
-- Profile artifact and commit: None; this adds measurement resolution, not a particle optimization.
+- Profile artifact: None; implementation commit [7c256c5](https://github.com/ItsDropper/VantaBoost/commit/7c256c590e6651ae66b2bac426c49c9fb5b37f52); this adds measurement resolution, not a particle optimization.
 - Root cause: The particle profiler reported average and maximum engine extraction time but could not distinguish recurring slow extraction calls from one-off outliers; quad-group timing had only an average.
 - Hypothesis: Fixed-memory logarithmic histograms can expose approximate p95/p99 latency for complete engine extraction calls and individual quad-group extraction calls without per-sample allocation.
 - Proposed mechanism: Record elapsed values into two 64-bucket histograms only when particle profiling is enabled; report bucket upper bounds and reset with the existing 300-call counters.
@@ -407,7 +407,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Particle-heavy fixed scene; collect at least five 300-call reports, then repeat final frame-time/JFR runs with profiling disabled.
 - Before/after distributions: None; this improves instrumentation rather than changing particle rendering.
 - Regressions: Profiling-enabled runs add fixed-array increments at extraction boundaries. Normal launches do not allocate histogram arrays.
-- Validation evidence: CI build/tests and all four mixin launch smoke paths pending.
+- Validation evidence: [Run #45437699146](https://github.com/ItsDropper/VantaBoost/actions/runs/45437699146) passed build/tests, all four client mixin smoke configurations, and JAR upload. The original frustum visibility result remains unchanged.
 - Rollback condition: Revert if profiling overhead becomes material or the approximate percentile output is misinterpreted as exact p95/p99.
 - Decision and rationale: Keep; tail latency is necessary to judge whether a future Sodium-aware particle section test is worth implementing.
 
