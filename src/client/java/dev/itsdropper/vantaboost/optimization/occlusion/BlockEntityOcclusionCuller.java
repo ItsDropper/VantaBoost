@@ -35,9 +35,9 @@ public final class BlockEntityOcclusionCuller {
     private static final boolean ENABLED = OcclusionFeaturePolicy.isEnabled(
             Boolean.getBoolean("vantaboost.enableBlockEntityOcclusion"),
             Boolean.getBoolean("vantaboost.disableBlockEntityOcclusion"));
-    private static final boolean UNSUPPORTED_RENDERER_LOADED =
-            FabricLoader.getInstance().isModLoaded("canvas")
-                    || FabricLoader.getInstance().isModLoaded("entityculling");
+    private static final boolean UNSUPPORTED_RENDERER_LOADED = ENABLED
+            && (FabricLoader.getInstance().isModLoaded("canvas")
+                    || FabricLoader.getInstance().isModLoaded("entityculling"));
 
     private static final Map<BlockEntity, CacheEntry> CACHE = new WeakHashMap<>();
     private static WeakReference<ClientLevel> activeLevel = new WeakReference<>(null);
