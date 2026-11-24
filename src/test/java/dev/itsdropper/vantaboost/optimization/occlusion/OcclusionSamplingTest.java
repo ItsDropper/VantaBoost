@@ -199,6 +199,17 @@ class OcclusionSamplingTest {
     }
 
     @Test
+    void rayHitMustLieOnTheActualOuterBlockFacePlane() {
+        assertTrue(OcclusionSampling.isHitOnBlockFace(4.0, 4, -1));
+        assertTrue(OcclusionSampling.isHitOnBlockFace(5.0, 4, 1));
+        assertTrue(OcclusionSampling.isHitOnBlockFace(4.0 + 5.0E-6, 4, -1));
+        assertFalse(OcclusionSampling.isHitOnBlockFace(4.0 + 2.0E-5, 4, -1));
+        assertFalse(OcclusionSampling.isHitOnBlockFace(4.5, 4, -1));
+        assertFalse(OcclusionSampling.isHitOnBlockFace(Double.NaN, 4, -1));
+        assertFalse(OcclusionSampling.isHitOnBlockFace(4.0, 4, 0));
+    }
+
+    @Test
     void oneOpaqueFaceCanFullyCoverACompactEntityBehindIt() {
         assertTrue(OcclusionSampling.isFullyOccludedByBlockFace(
                 2, 0.25, 0.25, 3, 0.75, 0.75,

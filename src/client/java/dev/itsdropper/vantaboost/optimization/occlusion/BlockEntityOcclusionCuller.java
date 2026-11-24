@@ -258,11 +258,15 @@ public final class BlockEntityOcclusionCuller {
                 : face.getAxis() == Direction.Axis.Y ? 1 : 2;
         int normalStep = axis == 0 ? face.getStepX()
                 : axis == 1 ? face.getStepY() : face.getStepZ();
-        double plane = axis == 0 ? hitBlock.getX()
+        int fixedBlockCoordinate = axis == 0 ? hitBlock.getX()
                 : axis == 1 ? hitBlock.getY() : hitBlock.getZ();
-        if (normalStep > 0) {
-            plane += 1.0;
+        double hitCoordinate = axis == 0 ? hit.getLocation().x
+                : axis == 1 ? hit.getLocation().y : hit.getLocation().z;
+        if (!OcclusionSampling.isHitOnBlockFace(
+                hitCoordinate, fixedBlockCoordinate, normalStep)) {
+            return false;
         }
+        double plane = fixedBlockCoordinate + (normalStep > 0 ? 1.0 : 0.0);
 
         if (!OcclusionSampling.projectAabbOntoPlane(
                 minX, minY, minZ, maxX, maxY, maxZ,

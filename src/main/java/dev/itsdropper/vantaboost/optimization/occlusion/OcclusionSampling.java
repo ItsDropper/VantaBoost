@@ -16,6 +16,23 @@ public final class OcclusionSampling {
     }
 
     /**
+     * Confirms that a collider ray intersected the actual outer face plane of
+     * the block. A partial collision shape can report an interior face even
+     * when its visual occlusion shape is full; such a hit is not a valid plane
+     * for the block-face coverage proof.
+     */
+    public static boolean isHitOnBlockFace(
+            double hitCoordinate, int blockCoordinate, int normalStep
+    ) {
+        if (!isFinite(hitCoordinate) || (normalStep != -1 && normalStep != 1)) {
+            return false;
+        }
+
+        double expectedPlane = blockCoordinate + (normalStep > 0 ? 1.0 : 0.0);
+        return Math.abs(hitCoordinate - expectedPlane) <= PLANE_EPSILON;
+    }
+
+    /**
      * @param axis 0 for an X-normal face, 1 for Y, 2 for Z
      * @param normalStep -1 when the camera is on the negative side of the
      *                    face plane, +1 when it is on the positive side

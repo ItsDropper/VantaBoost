@@ -41,6 +41,26 @@ Record every investigated optimization, including rejected experiments. Compilat
 
 Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental entity and block-entity occlusion prototypes are implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
 
+### [VB-R24] Reject interior collision-shape hits as occluder planes
+
+- Status: Implemented — geometric correctness hardening
+- Target Minecraft version: 1.21.11
+- Subsystem: Entity and block-entity opaque-face projection
+- Relevant source paths: `OcclusionSampling`, `EntityOcclusionCuller`, and `BlockEntityOcclusionCuller`; Minecraft `BlockHitResult.getLocation()` and `BlockState.isSolidRender()`
+- Profile artifact and commit: Not applicable; this narrows when a ray hit may seed the geometric proof.
+- Root cause: `BlockState.isSolidRender()` describes the block's occlusion shape, while `ClipContext.Block.COLLIDER` intersects its collision shape. These shapes are not required to be identical. A partial collision shape can report an interior face, but the cullers previously converted the block position and face direction directly into an outer block-plane coordinate.
+- Hypothesis: Requiring the actual ray intersection coordinate to match the corresponding outer block face plane prevents an interior collision-shape face from being misinterpreted as a full opaque block face.
+- Proposed mechanism: Add `OcclusionSampling.isHitOnBlockFace`, with the existing plane epsilon, and call it in both cullers before projecting bounds. A hit more than epsilon from the outer block face fails open. Add deterministic tests for both face directions, tolerance boundaries, interior hits, non-finite coordinates, and invalid normals.
+- Expected metrics: No FPS claim. This can only reduce false candidate planes; it may miss some otherwise valid occlusion opportunities.
+- Correctness constraints: Preserve the full projected-bounds and every-face-cell proof. Any uncertain hit must remain visible.
+- Compatibility risks: A collision shape whose intersection is slightly inset from the block boundary will no longer seed a culling proof; this is intentionally conservative.
+- Benchmark scenarios and repetitions: Not applicable; visual correctness gate remains required.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: Unit tests, build, and all four client mixin smoke configurations pending.
+- Rollback condition: Revert only if a supported vanilla full-block collider reports legitimate outer-face hits outside the epsilon on the target version.
+- Decision and rationale: Keep; an interior collision-shape surface is not the outer visual occluder plane assumed by the projection proof.
+
 ### [VB-R23] Make occlusion raycasts independent of entity collision context
 
 - Status: Implemented — correctness hardening
