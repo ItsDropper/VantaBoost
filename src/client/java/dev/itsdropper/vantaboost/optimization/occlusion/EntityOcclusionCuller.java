@@ -49,7 +49,8 @@ public final class EntityOcclusionCuller {
     private static final double[] PROJECTED_FACE_BOUNDS = new double[4];
     private static final int[] FACE_CELL_RANGE = new int[4];
     private static final boolean ENABLED =
-            !Boolean.getBoolean("vantaboost.disableEntityOcclusion");
+            Boolean.getBoolean("vantaboost.enableEntityOcclusion")
+                    && !Boolean.getBoolean("vantaboost.disableEntityOcclusion");
 
     private static final Map<Entity, CacheEntry> CACHE = new WeakHashMap<>();
     private static final boolean UNSUPPORTED_RENDERER_LOADED =
