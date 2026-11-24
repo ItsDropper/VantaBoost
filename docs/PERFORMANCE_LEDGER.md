@@ -358,7 +358,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Relevant source path: `RendererOverridePolicy`
 - Profile artifact and commit: Not applicable; this is a correctness/compatibility guard.
 - Root cause: Renderer inspection catches `SecurityException` only. Java reflection can also throw linkage or runtime failures when optional types referenced by a modded renderer's method signatures cannot be resolved.
-- Hypothesis: Treating every reflection inspection failure as an unsafe renderer prevents an optional/modded renderer from crashing entity extraction or being incorrectly accepted for occlusion.
+- Hypothesis: Treating every reflection inspection failure as an unsafe renderer prevents an optional/modded renderer from crashing entity extraction or being incorrectly accepted for occlusion. A class-loader-isolated test fixture with an unresolved method-signature type exercises the linkage-error path.
 - Proposed mechanism: Catch `LinkageError` and `RuntimeException` around declared-method and parameter-type inspection, and return the existing fail-closed result.
 - Expected metrics: No performance claim. The change only affects renderer classes whose reflection inspection fails.
 - Correctness constraints: Any uncertain renderer must remain visible; do not swallow fatal VM errors outside the narrowly scoped reflection operation.
@@ -367,7 +367,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Before/after distributions: None
 - Regressions: None known.
 - Implementation commit: [2cea488](https://github.com/ItsDropper/VantaBoost/commit/2cea4881a53b1d5708eb1ce8f548c5ef437b0031).
-- Validation evidence: [Run #45436873456](https://github.com/ItsDropper/VantaBoost/actions/runs/45436873456) passed build/tests, all four client mixin smoke configurations, and JAR upload.
+- Validation evidence: [Run #45436873456](https://github.com/ItsDropper/VantaBoost/actions/runs/45436873456) passed build/tests, all four client mixin smoke configurations, and JAR upload. The isolated-classloader regression test for unresolved optional signature types is added in the current revision and is pending CI.
 - Rollback condition: Revert only if the broader catch masks a recoverable condition needed for supported renderer inspection; visible fallback is intentional.
 - Decision and rationale: Keep; compatibility uncertainty must disable culling, not crash the render path.
 
