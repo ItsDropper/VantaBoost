@@ -26,6 +26,8 @@ public final class ParticleExtractionDiagnostics {
     private static long extractionCalls;
     private static long engineExtractionNanos;
     private static long maximumEngineExtractionNanos;
+    private static final NanoHistogram ENGINE_LATENCY = ENABLED ? new NanoHistogram() : null;
+    private static final NanoHistogram QUAD_GROUP_LATENCY = ENABLED ? new NanoHistogram() : null;
     private static long quadGroupExtractionNanos;
     private static long quadGroups;
     private static long particleTests;
@@ -56,6 +58,7 @@ public final class ParticleExtractionDiagnostics {
         extractionCalls++;
         engineExtractionNanos += elapsed;
         maximumEngineExtractionNanos = Math.max(maximumEngineExtractionNanos, elapsed);
+        ENGINE_LATENCY.record(elapsed);
         quadGroupExtractionNanos += extractionQuadGroupNanos;
         quadGroups += extractionQuadGroups;
         particleTests += extractionParticleTests;
@@ -67,15 +70,21 @@ public final class ParticleExtractionDiagnostics {
         }
 
         VantaBoost.LOGGER.info(
-                "Particle extraction profile over {} extraction calls: avgEngine={}us, maxEngine={}us, "
+                "Particle extraction profile over {} extraction calls: avgEngine={}us, "
+                        + "p95Engine<={}us, p99Engine<={}us, maxEngine={}us, "
                         + "avgQuadGroups={}/call, avgQuadExtraction={}us/call, "
+                        + "p95QuadGroup<={}us, p99QuadGroup<={}us, "
                         + "quadCandidates={}/call, frustumVisible={}/call, "
                         + "frustumRejected={}/call",
                 extractionCalls,
                 engineExtractionNanos / extractionCalls / 1_000L,
+                ENGINE_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
+                ENGINE_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
                 maximumEngineExtractionNanos / 1_000L,
                 (double) quadGroups / extractionCalls,
                 quadGroupExtractionNanos / extractionCalls / 1_000L,
+                QUAD_GROUP_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
+                QUAD_GROUP_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
                 (double) particleTests / extractionCalls,
                 (double) frustumVisible / extractionCalls,
                 (double) frustumRejected / extractionCalls);
@@ -83,6 +92,8 @@ public final class ParticleExtractionDiagnostics {
         extractionCalls = 0L;
         engineExtractionNanos = 0L;
         maximumEngineExtractionNanos = 0L;
+        ENGINE_LATENCY.reset();
+        QUAD_GROUP_LATENCY.reset();
         quadGroupExtractionNanos = 0L;
         quadGroups = 0L;
         particleTests = 0L;
@@ -100,7 +111,9 @@ public final class ParticleExtractionDiagnostics {
 
     public static void endQuadGroup() {
         if (ENABLED) {
-            extractionQuadGroupNanos += Math.max(0L, System.nanoTime() - quadGroupStartedNanos);
+            long elapsed = Math.max(0L, System.nanoTime() - quadGroupStartedNanos);
+            extractionQuadGroupNanos += elapsed;
+            QUAD_GROUP_LATENCY.record(elapsed);
         }
     }
 

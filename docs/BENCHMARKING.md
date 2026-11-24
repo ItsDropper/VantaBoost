@@ -58,7 +58,7 @@ Start Minecraft with:
 -Dvantaboost.profileParticleExtraction=true
 ```
 
-Every 300 calls to `ParticleEngine.extract`, the profiler reports total particle-engine extraction time, quad-particle-group extraction time, quad groups processed, and average per-call counts of quad-particle frustum candidates, accepted particles, and rejected particles. The visibility expression is returned unchanged; this is measurement instrumentation, not a culling optimization.
+Every 300 calls to `ParticleEngine.extract`, the profiler reports total particle-engine extraction time, quad-particle-group extraction time, quad groups processed, and average per-call counts of quad-particle frustum candidates, accepted particles, and rejected particles. It also reports approximate p95/p99 upper bounds for complete engine extraction calls and individual quad-group extraction calls. The visibility expression is returned unchanged; this is measurement instrumentation, not a culling optimization.
 
 Use it to establish whether quad-particle extraction is a material part of the render-thread budget in a particle-heavy scene. The profiler reads `System.nanoTime()` at the particle-engine and quad-group boundaries, and increments counters at the per-particle frustum expression. This instrumentation adds overhead, so disable the property for final frame-time/JFR comparisons. The report covers the `QuadParticleGroup` path; item-pickup and elder-guardian particle groups are separate paths and are not included in its per-particle counters.
 

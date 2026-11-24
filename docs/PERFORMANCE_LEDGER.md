@@ -390,6 +390,26 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Rollback condition: Revert if profiling overhead becomes material or histogram output is mistaken for exact p95/p99 measurements.
 - Decision and rationale: Keep; tail latency is required to evaluate whether experimental culling work causes frame-time spikes.
 
+### [VB-R19] Add tail-latency reporting to particle extraction diagnostics
+
+- Status: Implemented — diagnostic instrumentation only
+- Target Minecraft version: 1.21.11
+- Subsystem: Particle engine and quad-particle-group extraction
+- Relevant source paths: `ParticleExtractionDiagnostics` and `NanoHistogram`
+- Profile artifact and commit: None; this adds measurement resolution, not a particle optimization.
+- Root cause: The particle profiler reported average and maximum engine extraction time but could not distinguish recurring slow extraction calls from one-off outliers; quad-group timing had only an average.
+- Hypothesis: Fixed-memory logarithmic histograms can expose approximate p95/p99 latency for complete engine extraction calls and individual quad-group extraction calls without per-sample allocation.
+- Proposed mechanism: Record elapsed values into two 64-bucket histograms only when particle profiling is enabled; report bucket upper bounds and reset with the existing 300-call counters.
+- Expected metrics: p95/p99 engine extraction and quad-group extraction latency become visible alongside average and maximum values. No runtime FPS gain is claimed.
+- Correctness constraints: Preserve all original frustum decisions and particle extraction behavior. Histogram storage must not be allocated when profiling is disabled.
+- Compatibility risks: Percentiles are approximate bucket upper bounds, not exact order statistics; profiling-enabled measurements include instrumentation overhead.
+- Benchmark scenarios and repetitions: Particle-heavy fixed scene; collect at least five 300-call reports, then repeat final frame-time/JFR runs with profiling disabled.
+- Before/after distributions: None; this improves instrumentation rather than changing particle rendering.
+- Regressions: Profiling-enabled runs add fixed-array increments at extraction boundaries. Normal launches do not allocate histogram arrays.
+- Validation evidence: CI build/tests and all four mixin launch smoke paths pending.
+- Rollback condition: Revert if profiling overhead becomes material or the approximate percentile output is misinterpreted as exact p95/p99.
+- Decision and rationale: Keep; tail latency is necessary to judge whether a future Sodium-aware particle section test is worth implementing.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.
