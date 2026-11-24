@@ -351,6 +351,11 @@ public final class EntityOcclusionCuller {
     public static void beginMainEntityExtraction(
             net.minecraft.client.renderer.culling.Frustum frustum
     ) {
+        if (!ENABLED) {
+            mainEntityFrustum = null;
+            irisShaderPackActive = false;
+            return;
+        }
         mainEntityFrustum = frustum;
         irisShaderPackActive = IrisShaderPackCompatibility.isShaderPackActive(
                 FabricLoader.getInstance().isModLoaded("iris"),
@@ -362,6 +367,7 @@ public final class EntityOcclusionCuller {
     ) {
         if (mainEntityFrustum == frustum) {
             mainEntityFrustum = null;
+            EntityOcclusionDiagnostics.onMainEntityExtractionFrame();
         }
     }
 
