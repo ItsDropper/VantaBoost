@@ -329,6 +329,27 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Rollback condition: Revert if Iris is not detected correctly in supported launch configurations or if runtime profiling shows no benefit and the cached state complicates compatibility.
 - Decision and rationale: Keep as a narrow immutable-state lookup reduction; not performance-accepted until runtime measurement.
 
+### [VB-R16] Circuit-break failed Iris API invocations
+
+- Status: Implemented — unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Optional Iris shader-pack compatibility
+- Relevant source path: `IrisShaderPackCompatibility`
+- Profile artifact and commit: None; implementation commit is recorded below.
+- Measured baseline cost: Unknown; no profile isolates reflective invocation failure overhead.
+- Root cause: API discovery failures are cached, but a successfully resolved Iris API whose `isShaderPackInUse` invocation later throws is invoked again on every entity/block-entity extraction frame.
+- Hypothesis: Marking the optional API unavailable after the first invocation failure preserves fail-open correctness and avoids repeated failing reflection calls.
+- Proposed mechanism: Replace the cached access with the existing unavailable sentinel in the invocation exception handler. Subsequent checks return active/unsafe immediately without calling Iris again.
+- Expected metrics: At most one failed API invocation per process/classloader cache lifetime instead of one per extraction frame after failure. No numerical frame-time improvement is claimed.
+- Correctness constraints: Any unknown Iris state must continue to disable occlusion. A transient API exception intentionally disables the optimization for the remainder of the process; restart Minecraft to retry.
+- Compatibility risks: A temporary Iris API failure becomes sticky until restart. This is conservative because resuming culling without a trustworthy shader-pack state could hide rendered geometry.
+- Benchmark scenarios and repetitions: Not run; the change affects only an exceptional compatibility path.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: Unit test verifies the first failed invocation fails open and later checks do not invoke the failing method again; CI is pending.
+- Rollback condition: Revert only if supported Iris versions are observed to throw transiently and require automatic recovery during the same process.
+- Decision and rationale: Keep; fail-open compatibility failures should not generate repeated reflective work on every frame.
+
 ## Initial state
 
 The initial repository commit established project structure only and made no performance claims. Research entries above are hypotheses, not accepted optimizations.

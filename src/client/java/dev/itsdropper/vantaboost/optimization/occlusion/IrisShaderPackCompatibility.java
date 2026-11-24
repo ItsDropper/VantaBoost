@@ -44,7 +44,9 @@ final class IrisShaderPackCompatibility {
         try {
             return access.isActive();
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
-            // Unknown Iris state is not safe to treat as a vanilla renderer.
+            // The API is no longer trustworthy. Disable further reflective calls
+            // rather than paying for a known-failing invocation every frame.
+            cachedAccess = UNAVAILABLE;
             return true;
         }
     }

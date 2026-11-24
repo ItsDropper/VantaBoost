@@ -29,5 +29,12 @@ class IrisShaderPackCompatibilityTest {
         assertTrue(IrisShaderPackCompatibility.isShaderPackActive(true, classLoader));
         assertEquals(1, IrisApi.instanceRequests());
         assertEquals(3, IrisApi.shaderPackQueries());
+
+        // Once the API invocation fails, the compatibility check must remain
+        // fail-open without invoking the broken method again on later frames.
+        IrisApi.setFailOnQuery(false);
+        assertTrue(IrisShaderPackCompatibility.isShaderPackActive(true, classLoader));
+        assertEquals(1, IrisApi.instanceRequests());
+        assertEquals(3, IrisApi.shaderPackQueries());
     }
 }
