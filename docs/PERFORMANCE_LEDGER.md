@@ -46,7 +46,7 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Status: Implemented — correctness hardening
 - Target Minecraft version: 1.21.11
 - Subsystem: Entity and block-entity opaque-face raycasts
-- Relevant source paths: `EntityOcclusionCuller` and `BlockEntityOcclusionCuller`; Minecraft 1.21.11 `ClipContext` and `EntityCollisionContext`
+- Relevant source paths: `EntityOcclusionCuller` and `BlockEntityOcclusionCuller`; Minecraft 1.21.11 [ `ClipContext`](https://github.com/H1lkaaaGD/Minecraft_1.21.11_Source/blob/main/net/minecraft/world/level/ClipContext.java) and [`EntityCollisionContext`](https://github.com/H1lkaaaGD/Minecraft_1.21.11_Source/blob/main/net/minecraft/world/phys/shapes/EntityCollisionContext.java)
 - Profile artifact and commit: Not applicable; this removes mutable entity-specific collision state from the occlusion proof.
 - Root cause: Entity raycasts passed the target entity as `ClipContext`'s collision context; block-entity raycasts passed the current camera entity. Minecraft 1.21.11's `EntityCollisionContext` derives collision behavior from mutable entity state including descending state, bottom Y, and held item. Positive cache entries do not include those values in their validity snapshot, so the same camera/world/bounds could reuse a proof produced under a different collision context.
 - Hypothesis: Using the singleton `CollisionContext.empty()` makes candidate-plane discovery deterministic and independent of the entity being culled or the active camera entity.
@@ -57,7 +57,8 @@ Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental 
 - Benchmark scenarios and repetitions: Not applicable to this correctness fix; repeat entity/block-entity visual correctness gates after runtime validation.
 - Before/after distributions: None
 - Regressions: None known.
-- Validation evidence: Build/tests and all four client mixin smoke configurations pending.
+- Implementation commit: [e852e78](https://github.com/ItsDropper/VantaBoost/commit/e852e78713b4db71d8a7eeea4570854fc4fc05b3).
+- Validation evidence: [Run #45444075928](https://github.com/ItsDropper/VantaBoost/actions/runs/45444075928) passed Gradle build/tests, full-enabled, entity-only, block-entity-only, and default-disabled client smoke tests, plus JAR upload.
 - Rollback condition: Revert if a supported vanilla solid-render block's collider shape under the empty context cannot safely identify its visually opaque face.
 - Decision and rationale: Keep; occlusion geometry must not depend on mutable collision semantics of an unrelated entity.
 

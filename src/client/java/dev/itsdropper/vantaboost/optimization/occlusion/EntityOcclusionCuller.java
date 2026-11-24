@@ -429,6 +429,9 @@ public final class EntityOcclusionCuller {
         double targetZ = (minZ + maxZ) * 0.5;
         Vec3 cameraPosition = new Vec3(cameraX, cameraY, cameraZ);
         Vec3 target = new Vec3(targetX, targetY, targetZ);
+        // This is a visual occlusion test, not entity collision. EntityCollisionContext
+        // captures mutable target/camera state (position, descent, held item); that
+        // state must not affect a cached candidate plane.
         BlockHitResult hit = level.clip(new ClipContext(
                 cameraPosition,
                 target,

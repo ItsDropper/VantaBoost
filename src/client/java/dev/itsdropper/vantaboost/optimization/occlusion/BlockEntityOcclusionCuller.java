@@ -233,6 +233,9 @@ public final class BlockEntityOcclusionCuller {
                 (minX + maxX) * 0.5,
                 (minY + maxY) * 0.5,
                 (minZ + maxZ) * 0.5);
+        // This is a visual occlusion test, not entity collision. EntityCollisionContext
+        // captures mutable target/camera state (position, descent, held item); that
+        // state must not affect a cached candidate plane.
         BlockHitResult hit = level.clip(new ClipContext(
                 cameraPosition, target,
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
