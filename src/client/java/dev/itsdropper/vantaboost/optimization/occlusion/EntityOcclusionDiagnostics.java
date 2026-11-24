@@ -94,15 +94,17 @@ public final class EntityOcclusionDiagnostics {
                 ? 0L : occlusionQueryNanos / occlusionQueries / 1_000L;
         VantaBoost.LOGGER.info(
                 "Entity occlusion profile over {} frames: candidates={}, cullerOcclusions={}, "
-                        + "avgCuller={}us, p95Culler<={}us, p99Culler<={}us, maxCuller={}us, "
+                        + "avgCuller={}us, p50Culler<={}us, p95Culler<={}us, p99Culler<={}us, maxCuller={}us, "
                         + "cacheHits={}, cachedOcclusions={}, budgetSkips={}, faceCellsPlanned={}, "
                         + "occlusionQueries={}, occlusionResults={}, avgQuery={}us, "
-                        + "p95Query<={}us, p99Query<={}us",
+                        + "p50Query<={}us, p95Query<={}us, p99Query<={}us",
                 frames, candidateCalls, candidateOcclusions, averageCullerMicros,
+                CULLER_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
                 CULLER_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
                 CULLER_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L,
                 maximumCullerNanos / 1_000L, cacheHits, cacheOcclusionHits, budgetSkips,
                 faceCellsPlanned, occlusionQueries, occlusionResults, averageQueryMicros,
+                QUERY_LATENCY.percentileUpperBoundNanos(0.50) / 1_000L,
                 QUERY_LATENCY.percentileUpperBoundNanos(0.95) / 1_000L,
                 QUERY_LATENCY.percentileUpperBoundNanos(0.99) / 1_000L);
 

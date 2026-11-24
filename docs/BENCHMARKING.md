@@ -58,7 +58,7 @@ Start Minecraft with:
 -Dvantaboost.profileParticleExtraction=true
 ```
 
-Every 300 calls to `ParticleEngine.extract`, the profiler reports total particle-engine extraction time, quad-particle-group extraction time, quad groups processed, and average per-call counts of quad-particle frustum candidates, accepted particles, and rejected particles. It also reports approximate p95/p99 upper bounds for complete engine extraction calls and individual quad-group extraction calls. The visibility expression is returned unchanged; this is measurement instrumentation, not a culling optimization.
+Every 300 calls to `ParticleEngine.extract`, the profiler reports total particle-engine extraction time, quad-particle-group extraction time, quad groups processed, and average per-call counts of quad-particle frustum candidates, accepted particles, and rejected particles. It also reports approximate p50/p95/p99 upper bounds for complete engine extraction calls and individual quad-group extraction calls. The visibility expression is returned unchanged; this is measurement instrumentation, not a culling optimization.
 
 Use it to establish whether quad-particle extraction is a material part of the render-thread budget in a particle-heavy scene. The profiler reads `System.nanoTime()` at the particle-engine and quad-group boundaries, and increments counters at the per-particle frustum expression. This instrumentation adds overhead, so disable the property for final frame-time/JFR comparisons. The report covers the `QuadParticleGroup` path; item-pickup and elder-guardian particle groups are separate paths and are not included in its per-particle counters.
 
@@ -71,7 +71,7 @@ The experimental culler exposes opt-in counters. Start Minecraft with:
 -Dvantaboost.profileEntityOcclusion=true
 ```
 
-It emits a summary every 300 main entity-extraction frames while the culler is enabled. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time. It also reports approximate p95/p99 latency upper bounds for candidate handling and actual occlusion queries; the fixed logarithmic histograms use constant memory and no per-sample allocation.
+It emits a summary every 300 main entity-extraction frames while the culler is enabled. The report includes candidate calls, culls, average/maximum full-culler time, cache hits, cached occlusions, query-budget skips, planned face-cell checks, occlusion-query count, occlusion results, and average full occlusion-query time. It also reports approximate p50/p95/p99 latency upper bounds for candidate handling and actual occlusion queries; the fixed logarithmic histograms use constant memory and no per-sample allocation.
 
 Entity occlusion is disabled by default. Use the enabled diagnostic run to inspect query/cache behavior. Do not expect a diagnostic report when the feature is disabled: the default-disabled configuration omits the entity culling mixins entirely. For frame-time comparisons, run the same fixed scene once with `-Dvantaboost.enableEntityOcclusion=true` and once with the enable property omitted (or with `-Dvantaboost.disableEntityOcclusion=true`), with profiling disabled in both runs. This isolates the cost of the enabled feature; the disabled run retains only vanilla rendering.
 
@@ -86,7 +86,7 @@ Enable the experimental block-entity culler and its counters with:
 -Dvantaboost.profileBlockEntityOcclusion=true
 ```
 
-The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time. It also reports approximate p95/p99 latency upper bounds for candidate handling and ray queries using fixed-memory logarithmic histograms.
+The report is emitted every 300 main block-entity-extraction frames. It includes candidate count, successful culls, average/maximum culler time, cache hits, cached culls, query-budget skips, planned face-cell checks, ray queries, positive query results, and average ray-query time. It also reports approximate p50/p95/p99 latency upper bounds for candidate handling and ray queries using fixed-memory logarithmic histograms.
 
 For the disabled baseline, omit the enable property (or set `-Dvantaboost.disableBlockEntityOcclusion=true`). The Mixin config plugin omits the block-entity culling mixins entirely in that configuration, so no wrapper, culler timing counters, or diagnostic report is expected. Capture the same frame-time/JFR metrics with profiling disabled.
 

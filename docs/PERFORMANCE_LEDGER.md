@@ -41,6 +41,27 @@ Record every investigated optimization, including rejected experiments. Compilat
 
 Source-level research is documented in [RESEARCH.md](RESEARCH.md). Experimental entity and block-entity occlusion prototypes are implemented, but no VantaBoost runtime baseline has been captured and no optimization has been accepted on performance evidence.
 
+### [VB-R18] Report median latency alongside tail percentiles
+
+- Status: Implemented — diagnostic improvement; performance unbenchmarked
+- Target Minecraft version: 1.21.11
+- Subsystem: Opt-in entity, block-entity, and particle extraction diagnostics
+- Relevant source paths: `EntityOcclusionDiagnostics`, `BlockEntityOcclusionDiagnostics`, `ParticleExtractionDiagnostics`, and `NanoHistogram`
+- Profile artifact and commit: None; this changes only opt-in diagnostic reporting.
+- Root cause: Diagnostic summaries reported average, p95, p99, and maximum latency, but omitted the median. Averages can be skewed by occasional slow samples and tail percentiles alone do not describe the typical operation.
+- Hypothesis: Reporting the fixed histogram's p50 upper bound gives a compact typical-latency measure alongside p95/p99 without recording individual samples or allocating per sample.
+- Proposed mechanism: Query the existing 64-bucket logarithmic histograms at the 50th percentile for culler, query, particle-engine, and quad-group timings; document the additional fields.
+- Expected metrics: Better characterization of typical versus tail latency. No runtime FPS improvement is claimed; extra work occurs only at the existing 300-frame/extraction report interval.
+- Correctness constraints: Preserve bucket upper-bound semantics, bounded memory, allocation-free recording, and disabled-by-default instrumentation.
+- Compatibility risks: Log field order changes for consumers parsing diagnostic lines; field names remain explicit and stable.
+- Benchmark scenarios and repetitions: Not applicable; diagnostic output only.
+- Before/after distributions: None
+- Regressions: None known.
+- Validation evidence: Existing `NanoHistogramTest` covers nearest-rank p50 and upper-bound behavior; full CI pending.
+- Rollback condition: Revert if reporting overhead is measurable in the opt-in path or downstream tooling depends on the old positional log format.
+- Decision and rationale: Keep; median plus tail latency is more useful for diagnosing distributions while retaining constant-memory histograms.
+
+
 ### [VB-R01] Redundant framebuffer unbind avoidance
 
 - Status: Investigating
