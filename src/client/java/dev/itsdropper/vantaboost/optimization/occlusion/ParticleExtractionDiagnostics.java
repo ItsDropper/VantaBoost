@@ -62,16 +62,16 @@ public final class ParticleExtractionDiagnostics {
         frustumVisible += frameFrustumVisible;
         frustumRejected += frameFrustumRejected;
 
-        if (frames < REPORT_INTERVAL_FRAMES) {
+        if (extractionCalls < REPORT_INTERVAL_EXTRACTIONS) {
             return;
         }
 
         VantaBoost.LOGGER.info(
                 "Particle extraction profile over {} extraction calls: avgEngine={}us, maxEngine={}us, "
-                        + "avgQuadGroups={}/frame, avgQuadExtraction={}us/frame, "
-                        + "quadCandidates={}/frame, frustumVisible={}/frame, "
-                        + "frustumRejected={}/frame",
-                frames,
+                        + "avgQuadGroups={}/call, avgQuadExtraction={}us/call, "
+                        + "quadCandidates={}/call, frustumVisible={}/call, "
+                        + "frustumRejected={}/call",
+                extractionCalls,
                 engineExtractionNanos / extractionCalls / 1_000L,
                 maximumEngineExtractionNanos / 1_000L,
                 (double) quadGroups / extractionCalls,
