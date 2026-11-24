@@ -24,7 +24,7 @@ public abstract class ParticleEngineDiagnosticsMixin {
             ParticlesRenderState renderState, Frustum frustum,
             Camera camera, float partialTickTime, CallbackInfo ci
     ) {
-        ParticleExtractionDiagnostics.beginFrame();
+        ParticleExtractionDiagnostics.beginExtraction();
     }
 
     @Inject(
@@ -35,6 +35,6 @@ public abstract class ParticleEngineDiagnosticsMixin {
             ParticlesRenderState renderState, Frustum frustum,
             Camera camera, float partialTickTime, CallbackInfo ci
     ) {
-        ParticleExtractionDiagnostics.endFrame();
+        ParticleExtractionDiagnostics.endExtraction();
     }
 }
