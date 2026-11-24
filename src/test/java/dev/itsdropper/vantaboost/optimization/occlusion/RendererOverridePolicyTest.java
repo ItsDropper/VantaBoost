@@ -2,16 +2,22 @@ package dev.itsdropper.vantaboost.optimization.occlusion;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RendererOverridePolicyTest {
     @Test
     void unresolvedOptionalRendererSignatureFailsClosed() throws Exception {
         Class<?> rendererType = loadWithoutOptionalSignatureType();
+
+        assertThrows(LinkageError.class, () -> {
+            for (var method : rendererType.getDeclaredMethods()) {
+                method.getParameterTypes();
+            }
+        });
 
         assertTrue(RendererOverridePolicy.declaresMethodWithFirstParameter(
                 rendererType, Object.class, "shouldRender", Object.class));
